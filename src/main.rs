@@ -65,13 +65,13 @@ fn trigger_input_prompt(mut prompt_events: EventWriter<InputPromptable>) {
 }
 
 fn main() {
-    let (transmitter, receiver) = channel::<Input>();
+    let (sender, receiver) = channel::<Input>();
 
     thread::spawn(move || {
         loop {
             let mut input = String::new();
             stdin().read_line(&mut input).unwrap();
-            transmitter.send(Input::from(input)).unwrap();
+            sender.send(Input::from(input)).unwrap();
         }
     });
 
