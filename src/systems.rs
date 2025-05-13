@@ -34,7 +34,7 @@ pub(crate) fn dispatch_input_to_action(
 ) {
     for event in input_events.read() {
         match event {
-            InputReceived(Input::Content(input)) => match input.trim().to_lowercase().to_string() {
+            InputReceived(Input::Content(input)) => match input {
                 input if input.starts_with("a") => action_events.write(ActionUsed(Action::Attack)),
                 input if input.starts_with("d") => action_events.write(ActionUsed(Action::Defend)),
                 input if input.starts_with("h") => action_events.write(ActionUsed(Action::Help)),
