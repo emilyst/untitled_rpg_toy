@@ -8,13 +8,13 @@ use crate::systems::*;
 
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum Input {
-    Content(String),
+    Content { string: String },
     Disconnect,
 }
 
 impl From<&String> for Input {
     fn from(string: &String) -> Self {
-        Input::Content(string.trim().to_lowercase().to_string())
+        Input::Content { string: string.trim().to_lowercase().to_string() }
     }
 }
 
@@ -29,20 +29,20 @@ pub(crate) enum Action {
     Defend,
     Help,
     Quit,
-    Unknown(String),
+    Unknown { string: String },
     None,
 }
 
 impl From<&Input> for Action {
     fn from(input: &Input) -> Self {
         match input {
-            Input::Content(string) => match string {
+            Input::Content { string } => match string {
                 string if string.starts_with("a") => Action::Attack,
                 string if string.starts_with("d") => Action::Defend,
                 string if string.starts_with("h") => Action::Help,
                 string if string.starts_with("q") => Action::Quit,
                 string if string.is_empty() => Action::None,
-                _ => Action::Unknown(string.to_owned()),
+                string => Action::Unknown { string: string.to_owned() },
             },
             Input::Disconnect => Action::Quit,
         }

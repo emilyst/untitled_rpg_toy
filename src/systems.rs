@@ -45,7 +45,7 @@ pub(crate) fn handle_action_event(
                 app_exit_writer.write_default();
             }
             ActionUsed { action: Action::None } => println!("Nothing used!"),
-            ActionUsed { action: Action::Unknown(string) } => {
+            ActionUsed { action: Action::Unknown { string } } => {
                 println!(r#"Ignoring unrecognized action! ("{string}")"#)
             }
         }
