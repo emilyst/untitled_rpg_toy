@@ -23,9 +23,9 @@ fn main() {
 
     thread::spawn(move || {
         loop {
-            let mut input = String::new();
-            stdin().read_line(&mut input).unwrap();
-            sender.send(Input::from(input)).unwrap();
+            let mut string = String::new();
+            stdin().read_line(&mut string).unwrap();
+            sender.send(Input::from(string)).unwrap();
         }
     });
 

@@ -5,8 +5,8 @@ use crate::entities::*;
 use crate::resources::*;
 use crate::systems::*;
 
-#[derive(Event, Debug)]
+#[derive(Event, Deref, DerefMut, Debug)]
 pub(crate) struct ActionUsed(pub(crate) Action);
 
-#[derive(Event, Debug)]
+#[derive(Event, Deref, DerefMut, Debug)]
 pub(crate) struct InputReceived(pub(crate) Input);

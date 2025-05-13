@@ -39,7 +39,9 @@ pub(crate) fn handle_action_event(mut action_events: EventReader<ActionUsed>) {
             ActionUsed(Action::Help) => println!("Help used!"),
             ActionUsed(Action::Quit) => println!("Quit used!"),
             ActionUsed(Action::None) => println!("Nothing used!"),
-            ActionUsed(Action::Unknown(action)) => println!("Unrecognized action! ({})", action),
+            ActionUsed(Action::Unknown(string)) => {
+                println!("Unrecognized action! ({string})")
+            }
         }
     }
 }

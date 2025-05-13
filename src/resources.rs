@@ -13,8 +13,8 @@ pub(crate) enum Input {
 }
 
 impl From<String> for Input {
-    fn from(input: String) -> Self {
-        Input::Content(input.trim().to_lowercase().to_string())
+    fn from(string: String) -> Self {
+        Input::Content(string.trim().to_lowercase().to_string())
     }
 }
 
@@ -36,13 +36,13 @@ pub(crate) enum Action {
 impl From<Input> for Action {
     fn from(input: Input) -> Self {
         match input {
-            Input::Content(input) => match input {
-                input if input.starts_with("a") => Action::Attack,
-                input if input.starts_with("d") => Action::Defend,
-                input if input.starts_with("h") => Action::Help,
-                input if input.starts_with("q") => Action::Quit,
-                input if input.is_empty() => Action::None,
-                _ => Action::Unknown(input.to_owned()),
+            Input::Content(string) => match string {
+                string if string.starts_with("a") => Action::Attack,
+                string if string.starts_with("d") => Action::Defend,
+                string if string.starts_with("h") => Action::Help,
+                string if string.starts_with("q") => Action::Quit,
+                string if string.is_empty() => Action::None,
+                _ => Action::Unknown(string.to_owned()),
             },
             Input::Disconnect => Action::Quit,
         }
