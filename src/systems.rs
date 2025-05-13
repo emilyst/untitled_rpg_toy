@@ -1,3 +1,4 @@
+use bevy::ecs::event::*;
 use bevy::prelude::*;
 use std::io::*;
 
@@ -50,4 +51,22 @@ pub(crate) fn handle_action_used(
             }
         }
     }
+}
+
+#[test]
+fn update_score_on_event() {
+    let mut app = App::new();
+    app.add_event::<InputReceived>();
+    app.add_event::<ActionUsed>();
+    app.add_systems(Update, handle_input_received);
+
+    let event = InputReceived { input: Input::Content { string: "attack".to_string() } };
+    app.world_mut().send_event(event);
+    app.update();
+
+    let mut cursor = EventCursor::default();
+    let action_used_events = app.world().get_resource::<Events<ActionUsed>>().unwrap();
+    let iterator = cursor.read(action_used_events);
+
+    assert_eq!(iterator.len(), 1);
 }
