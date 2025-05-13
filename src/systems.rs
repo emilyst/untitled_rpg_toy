@@ -16,8 +16,8 @@ pub(crate) fn receive_input(
     mut input_events: EventWriter<InputReceived>,
 ) {
     input_events.write(match input_receiver.0.recv() {
-        Ok(input) => InputReceived(input),
-        Err(_) => InputReceived(Input::Disconnect),
+        Ok(input) => InputReceived { input },
+        Err(_) => InputReceived { input: Input::Disconnect },
     });
 }
 
@@ -26,8 +26,8 @@ pub(crate) fn handle_input_event(
     mut action_events: EventWriter<ActionUsed>,
 ) {
     for event in input_events.read() {
-        let InputReceived(input) = event;
-        action_events.write(ActionUsed(Action::from(input)));
+        let InputReceived { input } = event;
+        action_events.write(ActionUsed { action: Action::from(input) });
     }
 }
 
@@ -37,15 +37,15 @@ pub(crate) fn handle_action_event(
 ) {
     for event in action_events.read() {
         match event {
-            ActionUsed(Action::Attack) => println!("Attack used!"),
-            ActionUsed(Action::Defend) => println!("Defend used!"),
-            ActionUsed(Action::Help) => println!("Help used!"),
-            ActionUsed(Action::Quit) => {
+            ActionUsed { action: Action::Attack } => println!("Attack used!"),
+            ActionUsed { action: Action::Defend } => println!("Defend used!"),
+            ActionUsed { action: Action::Help } => println!("Help used!"),
+            ActionUsed { action: Action::Quit } => {
                 println!("Quitting!");
                 app_exit_writer.write_default();
             }
-            ActionUsed(Action::None) => println!("Nothing used!"),
-            ActionUsed(Action::Unknown(string)) => {
+            ActionUsed { action: Action::None } => println!("Nothing used!"),
+            ActionUsed { action: Action::Unknown(string) } => {
                 println!(r#"Ignoring unrecognized action! ("{string}")"#)
             }
         }
