@@ -31,12 +31,10 @@ fn main() {
 
     App::new()
         .add_plugins(MinimalPlugins)
-        .add_systems(PostStartup, prompt_for_input)
-        .add_systems(PreUpdate, receive_input)
-        .add_systems(Update, (handle_input_event, handle_action_event).chain())
-        .add_systems(PostUpdate, prompt_for_input)
         .add_event::<InputReceived>()
         .add_event::<ActionUsed>()
+        .add_systems(PreUpdate, (prompt_for_input, receive_input).chain())
+        .add_systems(Update, (handle_input_event, handle_action_event).chain())
         .insert_resource(InputReceiver(receiver))
         .run();
 }
