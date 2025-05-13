@@ -6,15 +6,9 @@ use crate::entities::*;
 use crate::events::*;
 use crate::resources::*;
 
-pub(crate) fn print_preamble(mut prompt_events: EventWriter<InputPromptable>) {
-    prompt_events.write(InputPromptable);
-}
-
-pub(crate) fn prompt_for_input(mut prompt_events: EventReader<InputPromptable>) {
-    for _ in prompt_events.read() {
-        print!(">> ");
-        stdout().flush().unwrap();
-    }
+pub(crate) fn prompt_for_input() {
+    print!(">> ");
+    stdout().flush().unwrap();
 }
 
 pub(crate) fn receive_input(
@@ -27,29 +21,17 @@ pub(crate) fn receive_input(
     });
 }
 
-pub(crate) fn dispatch_input_to_action(
+pub(crate) fn handle_input_event(
     mut input_events: EventReader<InputReceived>,
-    mut prompt_events: EventWriter<InputPromptable>,
     mut action_events: EventWriter<ActionUsed>,
 ) {
     for event in input_events.read() {
-        match event {
-            InputReceived(Input::Content(input)) => match input {
-                input if input.starts_with("a") => action_events.write(ActionUsed(Action::Attack)),
-                input if input.starts_with("d") => action_events.write(ActionUsed(Action::Defend)),
-                input if input.starts_with("h") => action_events.write(ActionUsed(Action::Help)),
-                input if input.starts_with("q") => action_events.write(ActionUsed(Action::Quit)),
-                input if input.is_empty() => action_events.write(ActionUsed(Action::None)),
-                _ => action_events.write(ActionUsed(Action::Unknown(input.clone()))),
-            },
-            InputReceived(Input::Disconnect) => action_events.write(ActionUsed(Action::Quit)),
-        };
+        let InputReceived(input) = event;
+        action_events.write(ActionUsed(Action::from(input.to_owned())));
     }
-
-    prompt_events.write(InputPromptable);
 }
 
-pub(crate) fn handle_action(mut action_events: EventReader<ActionUsed>) {
+pub(crate) fn handle_action_event(mut action_events: EventReader<ActionUsed>) {
     for event in action_events.read() {
         match event {
             ActionUsed(Action::Attack) => println!("Attack used!"),

@@ -9,7 +9,4 @@ use crate::systems::*;
 pub(crate) struct ActionUsed(pub(crate) Action);
 
 #[derive(Event, Debug)]
-pub(crate) struct InputPromptable;
-
-#[derive(Event, Debug)]
 pub(crate) struct InputReceived(pub(crate) Input);

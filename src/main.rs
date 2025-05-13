@@ -31,11 +31,11 @@ fn main() {
 
     App::new()
         .add_plugins(MinimalPlugins)
-        .add_systems(PostStartup, print_preamble)
-        .add_systems(PreUpdate, (prompt_for_input, receive_input).chain())
-        .add_systems(Update, (dispatch_input_to_action, handle_action).chain())
+        .add_systems(PostStartup, prompt_for_input)
+        .add_systems(PreUpdate, receive_input)
+        .add_systems(Update, (handle_input_event, handle_action_event).chain())
+        .add_systems(PostUpdate, prompt_for_input)
         .add_event::<InputReceived>()
-        .add_event::<InputPromptable>()
         .add_event::<ActionUsed>()
         .insert_resource(InputReceiver(receiver))
         .run();
