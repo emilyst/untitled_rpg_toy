@@ -31,16 +31,22 @@ pub(crate) fn handle_input_event(
     }
 }
 
-pub(crate) fn handle_action_event(mut action_events: EventReader<ActionUsed>) {
+pub(crate) fn handle_action_event(
+    mut action_events: EventReader<ActionUsed>,
+    mut app_exit_writer: EventWriter<AppExit>,
+) {
     for event in action_events.read() {
         match event {
             ActionUsed(Action::Attack) => println!("Attack used!"),
             ActionUsed(Action::Defend) => println!("Defend used!"),
             ActionUsed(Action::Help) => println!("Help used!"),
-            ActionUsed(Action::Quit) => println!("Quit used!"),
+            ActionUsed(Action::Quit) => {
+                println!("Quitting!");
+                app_exit_writer.write_default();
+            }
             ActionUsed(Action::None) => println!("Nothing used!"),
             ActionUsed(Action::Unknown(string)) => {
-                println!("Unrecognized action! ({string})")
+                println!(r#"Ignoring unrecognized action! ("{string}")"#)
             }
         }
     }
