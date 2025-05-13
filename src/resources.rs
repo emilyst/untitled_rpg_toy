@@ -12,8 +12,8 @@ pub(crate) enum Input {
     Disconnect,
 }
 
-impl From<String> for Input {
-    fn from(string: String) -> Self {
+impl From<&String> for Input {
+    fn from(string: &String) -> Self {
         Input::Content(string.trim().to_lowercase().to_string())
     }
 }
@@ -33,8 +33,8 @@ pub(crate) enum Action {
     None,
 }
 
-impl From<Input> for Action {
-    fn from(input: Input) -> Self {
+impl From<&Input> for Action {
+    fn from(input: &Input) -> Self {
         match input {
             Input::Content(string) => match string {
                 string if string.starts_with("a") => Action::Attack,

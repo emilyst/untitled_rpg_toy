@@ -27,7 +27,7 @@ pub(crate) fn handle_input_event(
 ) {
     for event in input_events.read() {
         let InputReceived(input) = event;
-        action_events.write(ActionUsed(Action::from(input.to_owned())));
+        action_events.write(ActionUsed(Action::from(input)));
     }
 }
 

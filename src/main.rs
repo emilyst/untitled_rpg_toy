@@ -25,7 +25,7 @@ fn main() {
         loop {
             let mut string = String::new();
             stdin().read_line(&mut string).unwrap();
-            sender.send(Input::from(string)).unwrap();
+            sender.send(Input::from(&string)).unwrap();
         }
     });
 
