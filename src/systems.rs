@@ -21,7 +21,7 @@ pub(crate) fn receive_input(
     });
 }
 
-pub(crate) fn handle_input_event(
+pub(crate) fn handle_input_received(
     mut input_events: EventReader<InputReceived>,
     mut action_events: EventWriter<ActionUsed>,
 ) {
@@ -31,7 +31,7 @@ pub(crate) fn handle_input_event(
     }
 }
 
-pub(crate) fn handle_action_event(
+pub(crate) fn handle_action_used(
     mut action_events: EventReader<ActionUsed>,
     mut app_exit_writer: EventWriter<AppExit>,
 ) {

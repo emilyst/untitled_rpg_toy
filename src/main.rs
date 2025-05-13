@@ -34,7 +34,14 @@ fn main() {
         .add_event::<InputReceived>()
         .add_event::<ActionUsed>()
         .add_systems(PreUpdate, (prompt_for_input, receive_input).chain())
-        .add_systems(Update, (handle_input_event, handle_action_event).chain())
+        .add_systems(
+            Update,
+            (
+                handle_input_received.run_if(on_event::<InputReceived>),
+                handle_action_used.run_if(on_event::<ActionUsed>),
+            )
+                .chain(),
+        )
         .insert_resource(InputReceiver(receiver))
         .run();
 }
