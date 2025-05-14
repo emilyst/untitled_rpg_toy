@@ -42,7 +42,6 @@ fn main() {
             )
                 .chain(),
         )
-        .add_systems(Update, systems::target_next_enemy)
         .insert_resource(resources::InputReceiver(receiver))
         .run();
 }
