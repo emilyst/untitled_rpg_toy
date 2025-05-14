@@ -1,9 +1,5 @@
 use bevy::prelude::*;
-use std::sync::mpsc::*;
-
-use crate::components::*;
-use crate::events::*;
-use crate::systems::*;
+use std::sync::mpsc::Receiver;
 
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) struct Target(pub(crate) Option<Entity>);

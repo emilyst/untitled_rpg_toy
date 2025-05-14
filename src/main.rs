@@ -1,49 +1,48 @@
 #![allow(dead_code)]
 #![allow(unused_imports)]
 
+use bevy::MinimalPlugins;
+use bevy::app::{App, PluginGroup, Startup};
+use bevy::log::LogPlugin;
 use bevy::prelude::*;
-use std::io::*;
-use std::sync::mpsc::*;
-use std::thread;
+use bevy::utils::default;
+use std::io::stdin;
+use std::sync::mpsc::channel;
 
 mod components;
 mod events;
 mod resources;
 mod systems;
 
-use crate::components::*;
-use crate::events::*;
-use crate::resources::*;
-use crate::systems::*;
-
 fn main() {
-    let (sender, receiver) = channel::<Input>();
+    let (sender, receiver) = channel::<resources::Input>();
 
-    thread::spawn(move || {
+    std::thread::spawn(move || {
         loop {
             let mut string = String::new();
             stdin().read_line(&mut string).unwrap();
-            sender.send(Input::from(&string)).unwrap();
+            sender.send(resources::Input::from(&string)).unwrap();
         }
     });
 
     App::new()
         .add_plugins(MinimalPlugins)
-        .add_event::<InputReceived>()
-        .add_event::<ActionTaken>()
-        .add_systems(Startup, spawn_player)
-        .add_systems(Startup, spawn_enemies)
-        .add_systems(PreUpdate, (prompt_for_input, receive_input).chain())
+        .add_plugins(LogPlugin { ..default() })
+        .add_event::<events::InputReceived>()
+        .add_event::<events::ActionTaken>()
+        .add_systems(Startup, systems::spawn_player)
+        .add_systems(Startup, systems::spawn_enemies)
+        .add_systems(PreUpdate, (systems::prompt_for_input, systems::receive_input).chain())
         .add_systems(
             Update,
             (
-                handle_input_received.run_if(on_event::<InputReceived>),
-                handle_action_used.run_if(on_event::<ActionTaken>),
+                systems::target_next_enemy,
+                systems::handle_input_received.run_if(on_event::<events::InputReceived>),
+                systems::handle_action_used.run_if(on_event::<events::ActionTaken>),
             )
                 .chain(),
         )
-        .add_systems(Update, target_enemy)
-        .insert_resource(InputReceiver(receiver))
-        .insert_resource(Target(None))
+        .add_systems(Update, systems::target_next_enemy)
+        .insert_resource(resources::InputReceiver(receiver))
         .run();
 }

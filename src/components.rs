@@ -1,24 +1,19 @@
-use bevy::prelude::*;
-use std::fmt::*;
+use bevy::ecs::prelude::*;
+use bevy::prelude::States;
+use std::fmt;
 
-use crate::events::*;
-use crate::resources::*;
-use crate::systems::*;
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
+pub(crate) enum GameState {
+    #[default]
+    InGame,
+    Paused,
+}
 
-#[derive(Component, Debug)]
-pub(crate) struct Player;
-
-#[derive(Component, Debug)]
-pub(crate) struct Enemy;
-
-#[derive(Component, Debug)]
-pub(crate) struct Friendly;
-
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 pub(crate) struct Name(pub(crate) String);
 
-impl Display for Name {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+impl fmt::Display for Name {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.0)
     }
 }
@@ -26,11 +21,49 @@ impl Display for Name {
 #[derive(Component, Debug)]
 pub(crate) struct Health(pub(crate) usize);
 
+impl Default for Health {
+    fn default() -> Self {
+        Health(100)
+    }
+}
+
 #[derive(Component, Debug)]
 pub(crate) struct Experience(pub(crate) usize);
+
+impl Default for Experience {
+    fn default() -> Self {
+        Experience(0)
+    }
+}
 
 #[derive(Component, Debug)]
 pub(crate) struct Strength(pub(crate) usize);
 
+impl Default for Strength {
+    fn default() -> Self {
+        Strength(0)
+    }
+}
+
 #[derive(Component, Debug)]
 pub(crate) struct Defense(pub(crate) usize);
+
+impl Default for Defense {
+    fn default() -> Self {
+        Defense(0)
+    }
+}
+
+#[derive(Component, Debug, Default)]
+#[require(Name, Health, Experience, Strength, Defense)]
+pub(crate) struct Player;
+
+#[derive(Component, Debug, Default)]
+pub(crate) struct Enemy;
+
+#[derive(Component, Debug, Default)]
+#[require(Enemy, Name, Health, Experience, Strength, Defense)]
+pub(crate) struct Slime;
+
+#[derive(Component, Debug, Default)]
+pub(crate) struct Target;
