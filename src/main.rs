@@ -30,16 +30,20 @@ fn main() {
     App::new()
         .add_plugins(MinimalPlugins)
         .add_event::<InputReceived>()
-        .add_event::<ActionUsed>()
+        .add_event::<ActionTaken>()
+        .add_systems(Startup, spawn_player)
+        .add_systems(Startup, spawn_enemies)
         .add_systems(PreUpdate, (prompt_for_input, receive_input).chain())
         .add_systems(
             Update,
             (
                 handle_input_received.run_if(on_event::<InputReceived>),
-                handle_action_used.run_if(on_event::<ActionUsed>),
+                handle_action_used.run_if(on_event::<ActionTaken>),
             )
                 .chain(),
         )
+        .add_systems(Update, target_enemy)
         .insert_resource(InputReceiver(receiver))
+        .insert_resource(Target(None))
         .run();
 }

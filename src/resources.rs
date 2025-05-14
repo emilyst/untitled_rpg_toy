@@ -6,6 +6,9 @@ use crate::events::*;
 use crate::systems::*;
 
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
+pub(crate) struct Target(pub(crate) Option<Entity>);
+
+#[derive(Resource, Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) enum Input {
     Content(String),
     Disconnect,

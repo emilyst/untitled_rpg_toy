@@ -5,10 +5,10 @@ use crate::resources::*;
 use crate::systems::*;
 
 #[derive(Event, Debug)]
-pub(crate) struct ActionUsed {
+pub(crate) struct ActionTaken {
     pub(crate) action: Action,
-    // pub(crate) source: Entity,
-    // pub(crate) target: Entity,
+    pub(crate) source: Entity,
+    pub(crate) target: Option<Entity>,
 }
 
 #[derive(Event, Debug)]
