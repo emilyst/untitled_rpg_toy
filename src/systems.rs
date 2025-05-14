@@ -16,7 +16,7 @@ pub(crate) fn spawn_enemies(mut commands: Commands) {
 
 pub(crate) fn prompt_for_input() {
     print!(">> ");
-    stdout().flush().unwrap();
+    stdout().flush().expect("Standard out should have flushed!");
 }
 
 pub(crate) fn receive_input(
