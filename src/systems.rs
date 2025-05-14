@@ -1,7 +1,22 @@
 use crate::{components, events, resources};
 use bevy::ecs::event::EventCursor;
 use bevy::prelude::*;
-use std::io::{Write, stdout};
+use std::io::{Write, stdin, stdout};
+use std::sync::mpsc::channel;
+
+pub(crate) fn spawn_input_loop_thread(mut commands: Commands) {
+    let (sender, receiver) = channel::<resources::Input>();
+
+    std::thread::spawn(move || {
+        loop {
+            let mut string = String::new();
+            stdin().read_line(&mut string).unwrap();
+            sender.send(resources::Input::from(&string)).unwrap();
+        }
+    });
+
+    commands.insert_resource(resources::InputReceiver(receiver));
+}
 
 pub(crate) fn spawn_player(mut commands: Commands) {
     commands.spawn((components::Player, components::Name(String::from("Heroine"))));

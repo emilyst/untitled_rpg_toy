@@ -15,36 +15,48 @@ mod resources;
 mod systems;
 
 fn main() {
-    let (sender, receiver) = channel::<resources::Input>();
+    let mut app = App::new();
 
-    std::thread::spawn(move || {
-        loop {
-            let mut string = String::new();
-            stdin().read_line(&mut string).unwrap();
-            sender.send(resources::Input::from(&string)).unwrap();
-        }
-    });
+    initialize_plugins(&mut app);
+    initialize_startup_systems(&mut app);
+    initialize_pre_update_systems(&mut app);
+    initialize_events(&mut app);
+    initialize_input_handler_systems(&mut app);
 
-    App::new()
-        .add_plugins(MinimalPlugins)
-        .add_plugins(LogPlugin { ..default() })
-        .add_event::<events::InputReceived>()
-        .add_event::<events::ActionTaken>()
-        .add_systems(Startup, systems::spawn_player)
-        .add_systems(Startup, systems::spawn_enemies)
-        .add_systems(PreUpdate, systems::target_next_enemy)
-        .add_systems(PreUpdate, systems::prompt_for_input)
-        .add_systems(PreUpdate, systems::receive_input.after(systems::prompt_for_input))
-        .add_systems(
-            Update,
-            systems::handle_input_received.run_if(on_event::<events::InputReceived>),
-        )
-        .add_systems(
-            Update,
-            systems::handle_action_used
-                .run_if(on_event::<events::ActionTaken>)
-                .after(systems::handle_input_received),
-        )
-        .insert_resource(resources::InputReceiver(receiver))
-        .run();
+    app.run();
+}
+
+fn initialize_plugins(app: &mut App) {
+    app.add_plugins(MinimalPlugins);
+    app.add_plugins(LogPlugin { ..default() });
+}
+
+fn initialize_events(app: &mut App) {
+    app.add_event::<events::InputReceived>();
+    app.add_event::<events::ActionTaken>();
+}
+
+fn initialize_startup_systems(app: &mut App) {
+    app.add_systems(Startup, systems::spawn_input_loop_thread);
+    app.add_systems(Startup, systems::spawn_player);
+    app.add_systems(Startup, systems::spawn_enemies);
+}
+
+fn initialize_pre_update_systems(app: &mut App) {
+    app.add_systems(PreUpdate, systems::target_next_enemy);
+    app.add_systems(PreUpdate, systems::prompt_for_input);
+    app.add_systems(PreUpdate, systems::receive_input.after(systems::prompt_for_input));
+}
+
+fn initialize_input_handler_systems(app: &mut App) {
+    app.add_systems(
+        Update,
+        systems::handle_input_received.run_if(on_event::<events::InputReceived>),
+    );
+    app.add_systems(
+        Update,
+        systems::handle_action_used
+            .run_if(on_event::<events::ActionTaken>)
+            .after(systems::handle_input_received),
+    );
 }
