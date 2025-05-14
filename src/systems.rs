@@ -16,8 +16,8 @@ pub(crate) fn receive_input(
     mut input_events: EventWriter<InputReceived>,
 ) {
     input_events.write(match input_receiver.0.recv() {
-        Ok(input) => InputReceived { input },
-        Err(_) => InputReceived { input: Input::Disconnect },
+        Ok(input) => InputReceived(input),
+        Err(_) => InputReceived(Input::Disconnect),
     });
 }
 
@@ -26,7 +26,7 @@ pub(crate) fn handle_input_received(
     mut action_events: EventWriter<ActionUsed>,
 ) {
     for event in input_events.read() {
-        let InputReceived { input } = event;
+        let InputReceived(input) = event;
         action_events.write(ActionUsed { action: Action::from(input) });
     }
 }
@@ -45,7 +45,7 @@ pub(crate) fn handle_action_used(
                 app_exit_writer.write_default();
             }
             ActionUsed { action: Action::None } => println!("Nothing used!"),
-            ActionUsed { action: Action::Unknown { string } } => {
+            ActionUsed { action: Action::Unknown(string) } => {
                 println!(r#"Ignoring unrecognized action! ("{string}")"#)
             }
         }
@@ -59,9 +59,7 @@ fn update_score_on_event() {
     app.add_event::<ActionUsed>();
     app.add_systems(Update, handle_input_received);
 
-    let event = InputReceived {
-        input: Input::Content { string: "attack".to_string() },
-    };
+    let event = InputReceived(Input::Content("attack".to_string()));
     app.world_mut().send_event(event);
     app.update();
 
