@@ -32,17 +32,18 @@ fn main() {
         .add_event::<events::ActionTaken>()
         .add_systems(Startup, systems::spawn_player)
         .add_systems(Startup, systems::spawn_enemies)
+        .add_systems(PreUpdate, systems::target_next_enemy)
+        .add_systems(PreUpdate, systems::prompt_for_input)
+        .add_systems(PreUpdate, systems::receive_input.after(systems::prompt_for_input))
         .add_systems(
-            PreUpdate,
-            (systems::target_next_enemy, systems::prompt_for_input, systems::receive_input).chain(),
+            Update,
+            systems::handle_input_received.run_if(on_event::<events::InputReceived>),
         )
         .add_systems(
             Update,
-            (
-                systems::handle_input_received.run_if(on_event::<events::InputReceived>),
-                systems::handle_action_used.run_if(on_event::<events::ActionTaken>),
-            )
-                .chain(),
+            systems::handle_action_used
+                .run_if(on_event::<events::ActionTaken>)
+                .after(systems::handle_input_received),
         )
         .insert_resource(resources::InputReceiver(receiver))
         .run();
