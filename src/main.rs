@@ -32,11 +32,13 @@ fn main() {
         .add_event::<events::ActionTaken>()
         .add_systems(Startup, systems::spawn_player)
         .add_systems(Startup, systems::spawn_enemies)
-        .add_systems(PreUpdate, (systems::prompt_for_input, systems::receive_input).chain())
+        .add_systems(
+            PreUpdate,
+            (systems::target_next_enemy, systems::prompt_for_input, systems::receive_input).chain(),
+        )
         .add_systems(
             Update,
             (
-                systems::target_next_enemy,
                 systems::handle_input_received.run_if(on_event::<events::InputReceived>),
                 systems::handle_action_used.run_if(on_event::<events::ActionTaken>),
             )
