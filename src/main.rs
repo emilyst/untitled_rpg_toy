@@ -7,13 +7,11 @@ use std::sync::mpsc::*;
 use std::thread;
 
 mod components;
-mod entities;
 mod events;
 mod resources;
 mod systems;
 
 use crate::components::*;
-use crate::entities::*;
 use crate::events::*;
 use crate::resources::*;
 use crate::systems::*;
