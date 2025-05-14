@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 rand = "*"
-log = "0.4.27"
+log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
 
 [dependencies.bevy]
 version = "0.16.*"
