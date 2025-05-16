@@ -1,16 +1,16 @@
 use crate::{components, events, resources};
-use bevy::ecs::event::EventCursor;
 use bevy::prelude::*;
-use std::io::{Write, stdin, stdout};
-use std::sync::mpsc::channel;
+use std::io;
+use std::io::Write;
+use std::sync::mpsc;
 
 pub(crate) fn spawn_input_loop_thread(mut commands: Commands) {
-    let (sender, receiver) = channel::<resources::Input>();
+    let (sender, receiver) = mpsc::channel::<resources::Input>();
 
     std::thread::spawn(move || {
         loop {
             let mut string = String::new();
-            stdin().read_line(&mut string).unwrap();
+            io::stdin().read_line(&mut string).unwrap();
             sender.send(resources::Input::from(&string)).unwrap();
         }
     });
@@ -31,7 +31,7 @@ pub(crate) fn spawn_enemies(mut commands: Commands) {
 
 pub(crate) fn prompt_for_input() {
     print!(">> ");
-    stdout().flush().expect("Standard out should have flushed!");
+    io::stdout().flush().expect("Standard out should have flushed!");
 }
 
 pub(crate) fn receive_input(
@@ -129,7 +129,7 @@ fn dispatch_action_event_on_input_received() {
     app.world_mut().send_event(event);
     app.update();
 
-    let mut cursor = EventCursor::default();
+    let mut cursor = bevy::ecs::event::EventCursor::default();
     let action_used_events = app.world().get_resource::<Events<events::ActionTaken>>().unwrap();
     let iterator = cursor.read(action_used_events);
 

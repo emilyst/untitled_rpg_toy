@@ -1,5 +1,4 @@
-use bevy::ecs::prelude::*;
-use bevy::prelude::States;
+use bevy::prelude::*;
 use std::fmt;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]

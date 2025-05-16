@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use std::sync::mpsc::Receiver;
+use std::sync::mpsc;
 
 #[derive(Resource, Debug, Clone, PartialEq, Eq, Hash, PartialOrd, Ord)]
 pub(crate) struct Target(pub(crate) Option<Entity>);
@@ -17,7 +17,7 @@ impl From<&String> for Input {
 }
 
 #[derive(Resource, Debug)]
-pub(crate) struct InputReceiver(pub(crate) Receiver<Input>);
+pub(crate) struct InputReceiver(pub(crate) mpsc::Receiver<Input>);
 
 unsafe impl Sync for InputReceiver {}
 

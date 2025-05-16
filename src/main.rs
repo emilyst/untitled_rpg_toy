@@ -1,13 +1,7 @@
 #![allow(dead_code)]
-#![allow(unused_imports)]
 
-use bevy::MinimalPlugins;
-use bevy::app::{App, PluginGroup, Startup};
 use bevy::log::LogPlugin;
 use bevy::prelude::*;
-use bevy::utils::default;
-use std::io::stdin;
-use std::sync::mpsc::channel;
 
 mod components;
 mod events;
@@ -46,6 +40,10 @@ fn initialize_pre_update_systems(app: &mut App) {
     app.add_systems(PreUpdate, systems::target_next_enemy);
     app.add_systems(PreUpdate, systems::prompt_for_input);
     app.add_systems(PreUpdate, systems::receive_input.after(systems::prompt_for_input));
+}
+
+fn initialize_update_systems(app: &mut App) {
+    initialize_input_handler_systems(app);
 }
 
 fn initialize_input_handler_systems(app: &mut App) {
