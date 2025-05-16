@@ -27,32 +27,14 @@ impl Default for Health {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 pub(crate) struct Experience(pub(crate) usize);
 
-impl Default for Experience {
-    fn default() -> Self {
-        Experience(0)
-    }
-}
-
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 pub(crate) struct Strength(pub(crate) usize);
 
-impl Default for Strength {
-    fn default() -> Self {
-        Strength(0)
-    }
-}
-
-#[derive(Component, Debug)]
+#[derive(Component, Debug, Default)]
 pub(crate) struct Defense(pub(crate) usize);
-
-impl Default for Defense {
-    fn default() -> Self {
-        Defense(0)
-    }
-}
 
 #[derive(Component, Debug, Default)]
 #[require(Name, Health, Experience, Strength, Defense)]
