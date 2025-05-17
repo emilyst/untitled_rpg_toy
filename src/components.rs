@@ -1,23 +1,6 @@
 use bevy::prelude::*;
-use std::fmt;
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug, Default, States)]
-pub(crate) enum GameState {
-    #[default]
-    InGame,
-    Paused,
-}
-
-#[derive(Component, Debug, Default)]
-pub(crate) struct Name(pub(crate) String);
-
-impl fmt::Display for Name {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-#[derive(Component, Debug)]
+#[derive(Component)]
 pub(crate) struct Health(pub(crate) usize);
 
 impl Default for Health {
@@ -26,25 +9,50 @@ impl Default for Health {
     }
 }
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Default)]
 pub(crate) struct Experience(pub(crate) usize);
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Default)]
 pub(crate) struct Strength(pub(crate) usize);
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Default)]
 pub(crate) struct Defense(pub(crate) usize);
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Default)]
 #[require(Name, Health, Experience, Strength, Defense)]
 pub(crate) struct Player;
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Default)]
+#[require(Name, Health, Experience, Strength, Defense)]
 pub(crate) struct Enemy;
 
-#[derive(Component, Debug, Default)]
-#[require(Enemy, Name, Health, Experience, Strength, Defense)]
+#[derive(Component, Default)]
+#[require(Enemy)]
 pub(crate) struct Slime;
 
-#[derive(Component, Debug, Default)]
-pub(crate) struct Target;
+#[derive(Component, Default)]
+pub(crate) struct Focus;
+
+#[derive(Component, Default)]
+pub(crate) enum Action {
+    Attack,
+    Defend,
+    Help,
+    Quit,
+    Unknown(String),
+    #[default]
+    None,
+}
+
+impl From<&String> for Action {
+    fn from(s: &String) -> Self {
+        match s {
+            s if s.starts_with("a") => Action::Attack,
+            s if s.starts_with("d") => Action::Defend,
+            s if s.starts_with("h") => Action::Help,
+            s if s.starts_with("q") => Action::Quit,
+            s if s.is_empty() => Action::None,
+            _ => Action::Unknown(s.trim().into()),
+        }
+    }
+}
