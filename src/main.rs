@@ -56,10 +56,10 @@ fn initialize_post_startup_systems(app: &mut App) {
 }
 
 fn initialize_pre_update_systems(app: &mut App) {
-    app.add_systems(PreUpdate, target_next_enemy.run_if(in_state(GameState::Running)));
+    app.add_systems(PreUpdate, focus_next_enemy.run_if(in_state(GameState::Running)));
     app.add_systems(
         PreUpdate,
-        prompt_for_input.run_if(in_state(GameState::Running)).after(target_next_enemy),
+        prompt_for_input.run_if(in_state(GameState::Running)).after(focus_next_enemy),
     );
     app.add_systems(
         PreUpdate,
