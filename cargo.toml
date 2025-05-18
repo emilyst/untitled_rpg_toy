@@ -3,14 +3,10 @@ name = "untitled_rpg_toy"
 version = "0.0.1"
 edition = "2024"
 
-[features]
-dev = ["bevy/file_watcher", "bevy/asset_processor"]
-
 [profile.dev]
 debug = 0
-#strip = "debuginfo"
 opt-level = 0 # Switch to 1 for more runtime performance
-# overflow-checks = false # Uncomment for better math performance
+overflow-checks = false # Uncomment for better math performance
 
 [profile.dev.package."*"]
 opt-level = 2
@@ -20,23 +16,32 @@ opt-level = 3
 panic = "abort"
 debug = 0
 strip = "debuginfo"
-lto = "thin" # Enable for more inlining with a bigger tradeoff in compile times
 
 [profile.distribution]
 inherits = "release"
 strip = true
 lto = "thin"
-codegen-units = 1
+codegen-units = 2
 
-[dependencies]
-rand = "*"
-log = { version = "0.4", features = ["max_level_debug", "release_max_level_warn"] }
+[dependencies.rand]
+version = "*"
+
+[dependencies.log]
+version = "0.4"
+#default-features = false
+features = [
+    "max_level_debug",
+    "release_max_level_warn",
+]
 
 [dependencies.bevy]
 version = "0.16.*"
 default-features = false
 features = [
+    "asset_processor",
     "bevy_log",
     "bevy_state",
+    "dynamic_linking",
+    "file_watcher",
     "std",
 ]
