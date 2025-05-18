@@ -8,6 +8,13 @@ debug = 0
 opt-level = 0 # Switch to 1 for more runtime performance
 overflow-checks = false # Uncomment for better math performance
 
+[features]
+dev = [
+    "bevy/asset_processor",
+    "bevy/dynamic_linking",
+    "bevy/file_watcher",
+]
+
 [profile.dev.package."*"]
 opt-level = 2
 
@@ -38,10 +45,6 @@ features = [
 version = "0.16.*"
 default-features = false
 features = [
-    "asset_processor",
     "bevy_log",
     "bevy_state",
-    "dynamic_linking",
-    "file_watcher",
-    "std",
 ]
