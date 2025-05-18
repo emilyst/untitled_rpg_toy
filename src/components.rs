@@ -52,13 +52,18 @@ pub(crate) enum Action {
 
 impl From<&String> for Action {
     fn from(s: &String) -> Self {
-        match s {
-            s if s.starts_with("a") => Action::Attack,
-            s if s.starts_with("d") => Action::Defend,
-            s if s.starts_with("h") => Action::Help,
-            s if s.starts_with("q") => Action::Quit,
-            s if s.is_empty() => Action::None,
-            _ => Action::Unknown(s.trim().into()),
+        if s.starts_with("a") {
+            Action::Attack
+        } else if s.starts_with("d") {
+            Action::Defend
+        } else if s.starts_with("h") {
+            Action::Help
+        } else if s.starts_with("q") {
+            Action::Quit
+        } else if s.is_empty() {
+            Action::None
+        } else {
+            Action::Unknown(s.trim().into())
         }
     }
 }
