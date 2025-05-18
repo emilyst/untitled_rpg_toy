@@ -1,19 +1,18 @@
 #![allow(dead_code)]
+#![allow(unused_imports)]
 #![allow(unused_variables)]
-
-use crate::events::*;
-use crate::states::*;
-use crate::systems::*;
-
-use bevy::log::LogPlugin;
-use bevy::prelude::*;
-use bevy::state::app::StatesPlugin;
 
 mod components;
 mod events;
+mod prelude;
 mod resources;
 mod states;
 mod systems;
+
+use crate::prelude::*;
+
+use bevy::log::LogPlugin;
+use bevy::state::app::StatesPlugin;
 
 fn main() {
     let mut app = App::new();

@@ -1,4 +1,9 @@
-use bevy::prelude::*;
+pub(crate) mod prelude {
+    pub(crate) use super::InputReceiver;
+}
+
+use crate::prelude::*;
+
 use std::sync::mpsc::Receiver;
 
 #[derive(Resource)]

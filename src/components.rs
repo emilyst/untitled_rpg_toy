@@ -1,4 +1,10 @@
-use bevy::prelude::*;
+pub(crate) mod prelude {
+    pub(crate) use super::{
+        Action, Defense, Enemy, Experience, Focus, Health, Player, Slime, Strength,
+    };
+}
+
+use crate::prelude::*;
 
 #[derive(Component, Debug)]
 pub(crate) struct Health(pub(crate) usize);

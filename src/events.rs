@@ -1,5 +1,8 @@
-use crate::components::*;
-use bevy::prelude::*;
+pub(crate) mod prelude {
+    pub(crate) use super::{ActionUsed, Damaged, InputReceived};
+}
+
+use crate::prelude::*;
 
 #[derive(Event)]
 pub(crate) struct InputReceived(pub(crate) String);

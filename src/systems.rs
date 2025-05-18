@@ -1,8 +1,8 @@
-use crate::components::*;
-use crate::events::*;
-use crate::resources::*;
+pub(crate) mod prelude {
+    pub(crate) use super::*;
+}
 
-use bevy::prelude::*;
+use crate::prelude::*;
 
 use std::io;
 use std::io::Write;
