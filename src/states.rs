@@ -1,4 +1,4 @@
-use bevy::prelude::States;
+use bevy::prelude::*;
 
 #[derive(States, Clone, Copy, Debug, PartialEq, Eq, Hash, Default)]
 #[states(scoped_entities)]

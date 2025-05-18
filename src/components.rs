@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub(crate) struct Health(pub(crate) usize);
 
 impl Default for Health {

@@ -2,9 +2,7 @@ use crate::components::*;
 use bevy::prelude::*;
 
 #[derive(Event)]
-pub(crate) struct InputReceived {
-    pub(crate) input: String,
-}
+pub(crate) struct InputReceived(pub(crate) String);
 
 #[derive(Event)]
 pub(crate) struct ActionUsed {
@@ -14,7 +12,7 @@ pub(crate) struct ActionUsed {
 }
 
 #[derive(Event)]
-pub(crate) struct DamageTaken {
-    pub(crate) damaged: Option<Entity>,
+pub(crate) struct Damaged {
     pub(crate) amount: usize,
+    pub(crate) entity: Entity,
 }

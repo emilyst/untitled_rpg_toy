@@ -41,6 +41,7 @@ fn initialize_plugins(app: &mut App) {
 fn initialize_events(app: &mut App) {
     app.add_event::<InputReceived>();
     app.add_event::<ActionUsed>();
+    app.add_event::<Damaged>();
 }
 
 fn initialize_startup_systems(app: &mut App) {
@@ -85,5 +86,12 @@ fn initialize_event_handler_systems(app: &mut App) {
             .run_if(on_event::<ActionUsed>)
             .run_if(in_state(GameState::Running))
             .after(handle_input_received),
+    );
+    app.add_systems(
+        Update,
+        handle_damaged
+            .run_if(on_event::<ActionUsed>)
+            .run_if(in_state(GameState::Running))
+            .after(handle_action_used),
     );
 }
