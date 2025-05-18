@@ -23,14 +23,14 @@ pub(crate) fn spawn_input_loop_thread(mut commands: Commands) {
 }
 
 pub(crate) fn spawn_player(mut commands: Commands) {
-    commands.spawn((Player, Name::from(String::from("Heroine"))));
+    commands.spawn((Player, Name::from("Heroine")));
 }
 
 pub(crate) fn spawn_enemies(mut commands: Commands) {
     commands.spawn_batch([
-        (Slime, Name::from(String::from("Slime 1"))),
-        (Slime, Name::from(String::from("Slime 2"))),
-        (Slime, Name::from(String::from("Slime 3"))),
+        (Slime, Name::from("Slime 1")),
+        (Slime, Name::from("Slime 2")),
+        (Slime, Name::from("Slime 3")),
     ]);
 }
 
