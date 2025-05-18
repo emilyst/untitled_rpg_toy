@@ -6,7 +6,7 @@ use crate::prelude::*;
 
 use std::sync::mpsc::Receiver;
 
-#[derive(Resource)]
+#[derive(Resource, Debug)]
 pub(crate) struct InputReceiver(pub(crate) Receiver<String>);
 
 unsafe impl Sync for InputReceiver {}

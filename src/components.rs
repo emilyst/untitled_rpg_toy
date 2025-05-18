@@ -15,31 +15,31 @@ impl Default for Health {
     }
 }
 
-#[derive(Component, Default)]
+#[derive(Component, Debug, Default)]
 pub(crate) struct Experience(pub(crate) usize);
 
-#[derive(Component, Default)]
+#[derive(Component, Debug, Default)]
 pub(crate) struct Strength(pub(crate) usize);
 
-#[derive(Component, Default)]
+#[derive(Component, Debug, Default)]
 pub(crate) struct Defense(pub(crate) usize);
 
-#[derive(Component, Default)]
+#[derive(Component, Debug, Default)]
 #[require(Name, Health, Experience, Strength, Defense)]
 pub(crate) struct Player;
 
-#[derive(Component, Default)]
+#[derive(Component, Debug, Default)]
 #[require(Name, Health, Experience, Strength, Defense)]
 pub(crate) struct Enemy;
 
-#[derive(Component, Default)]
+#[derive(Component, Debug, Default)]
 #[require(Enemy)]
 pub(crate) struct Slime;
 
-#[derive(Component, Default)]
+#[derive(Component, Debug, Default)]
 pub(crate) struct Focus;
 
-#[derive(Component, Default)]
+#[derive(Component, Debug, Default)]
 pub(crate) enum Action {
     Attack,
     Defend,
