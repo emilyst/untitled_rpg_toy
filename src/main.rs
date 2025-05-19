@@ -38,9 +38,10 @@ fn initialize_plugins(app: &mut App) {
 }
 
 fn initialize_events(app: &mut App) {
-    app.add_event::<InputReceived>();
+    app.add_event::<InputRead>();
     app.add_event::<ActionUsed>();
-    app.add_event::<Damaged>();
+    app.add_event::<TargetDamaged>();
+    app.add_event::<TargetDefeated>();
 }
 
 fn initialize_startup_systems(app: &mut App) {
@@ -56,41 +57,33 @@ fn initialize_post_startup_systems(app: &mut App) {
 }
 
 fn initialize_pre_update_systems(app: &mut App) {
-    app.add_systems(PreUpdate, focus_next_enemy.run_if(in_state(GameState::Running)));
     app.add_systems(
         PreUpdate,
-        prompt_for_input.run_if(in_state(GameState::Running)).after(focus_next_enemy),
-    );
-    app.add_systems(
-        PreUpdate,
-        receive_input.run_if(in_state(GameState::Running)).after(prompt_for_input),
+        (
+            focus_next_enemy.run_if(in_state(GameState::Running)),
+            prompt_for_input.run_if(in_state(GameState::Running)).after(focus_next_enemy),
+            receive_input.run_if(in_state(GameState::Running)).after(prompt_for_input),
+        )
+            .chain(),
     );
 }
 
 fn initialize_update_systems(app: &mut App) {
-    initialize_event_handler_systems(app);
-}
-
-fn initialize_event_handler_systems(app: &mut App) {
     app.add_systems(
         Update,
-        handle_input_received
-            .run_if(on_event::<InputReceived>)
-            .run_if(in_state(GameState::Running))
-            .before(handle_action_used),
-    );
-    app.add_systems(
-        Update,
-        handle_action_used
-            .run_if(on_event::<ActionUsed>)
-            .run_if(in_state(GameState::Running))
-            .after(handle_input_received),
-    );
-    app.add_systems(
-        Update,
-        handle_damaged
-            .run_if(on_event::<ActionUsed>)
-            .run_if(in_state(GameState::Running))
-            .after(handle_action_used),
+        (
+            handle_input_received
+                .run_if(on_event::<InputRead>)
+                .run_if(in_state(GameState::Running)),
+            handle_action_taken.run_if(on_event::<ActionUsed>).run_if(in_state(GameState::Running)),
+            handle_target_damaged
+                .run_if(on_event::<TargetDamaged>)
+                .run_if(in_state(GameState::Running)),
+            handle_target_defeated
+                .run_if(on_event::<TargetDefeated>)
+                .run_if(in_state(GameState::Running)),
+            trigger_enemy_actions.run_if(in_state(GameState::Running)),
+        )
+            .chain(),
     );
 }

@@ -1,11 +1,11 @@
 pub(crate) mod prelude {
-    pub(crate) use super::{ActionUsed, Damaged, InputReceived};
+    pub(crate) use super::*;
 }
 
 use crate::prelude::*;
 
 #[derive(Event, Debug)]
-pub(crate) struct InputReceived(pub(crate) String);
+pub(crate) struct InputRead(pub(crate) String);
 
 #[derive(Event, Debug)]
 pub(crate) struct ActionUsed {
@@ -15,7 +15,12 @@ pub(crate) struct ActionUsed {
 }
 
 #[derive(Event, Debug)]
-pub(crate) struct Damaged {
+pub(crate) struct TargetDamaged {
     pub(crate) amount: usize,
-    pub(crate) entity: Entity,
+    pub(crate) target: Entity,
+}
+
+#[derive(Event, Debug)]
+pub(crate) struct TargetDefeated {
+    pub(crate) target: Entity,
 }
