@@ -9,15 +9,15 @@ pub(crate) struct InputRead(pub(crate) String);
 
 #[derive(Event, Debug)]
 pub(crate) struct ActionUsed {
-    pub(crate) action: Action,
     pub(crate) actor: Option<Entity>,
     pub(crate) target: Option<Entity>,
+    pub(crate) action: Action,
 }
 
 #[derive(Event, Debug)]
 pub(crate) struct TargetDamaged {
-    pub(crate) amount: usize,
     pub(crate) target: Entity,
+    pub(crate) amount: usize,
 }
 
 #[derive(Event, Debug)]

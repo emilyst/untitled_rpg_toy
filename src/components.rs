@@ -9,6 +9,16 @@ use crate::prelude::*;
 #[derive(Component, Debug)]
 pub(crate) struct Health(pub(crate) usize);
 
+impl Health {
+    pub(crate) fn take_damage(&mut self, amount: usize) {
+        self.0 -= amount;
+    }
+
+    pub(crate) fn is_zero(&self) -> bool {
+        self.0 == 0
+    }
+}
+
 impl Default for Health {
     fn default() -> Self {
         Health(100)

@@ -4,7 +4,6 @@ pub(crate) mod prelude {
 
 use crate::prelude::*;
 
-use crate::events::TargetDefeated;
 use std::io;
 use std::io::Write;
 use std::sync::mpsc::sync_channel;
@@ -38,21 +37,22 @@ pub(crate) fn spawn_enemies(mut commands: Commands) {
 }
 
 pub(crate) fn focus_next_enemy(
-    query_enemy: Query<Entity, With<Enemy>>,
-    query_focus: Query<Entity, With<Focus>>,
+    query: Query<NameOrEntity, With<Enemy>>,
+    focus: Option<Single<NameOrEntity, With<Focus>>>,
     mut commands: Commands,
 ) {
     // just focus first enemy for now
-    let enemy = query_enemy.iter().min();
-    let focus = query_focus.single().ok();
+    let enemy = query.iter().min_by_key(|enemy| enemy.entity.index());
 
     match (enemy, focus) {
-        (Some(enemy), Some(focus)) if enemy != focus => {
-            commands.entity(focus).remove::<Focus>();
-            commands.entity(enemy).insert(Focus);
+        (Some(enemy), Some(focus)) => {
+            if enemy.entity != focus.entity {
+                commands.entity(focus.entity).remove::<Focus>();
+                commands.entity(enemy.entity).insert(Focus);
+            }
         }
         (Some(enemy), None) => {
-            commands.entity(enemy).insert(Focus);
+            commands.entity(enemy.entity).insert(Focus);
         }
         _ => {}
     }
@@ -71,8 +71,8 @@ pub(crate) fn receive_input(
 }
 
 pub(crate) fn handle_input_received(
-    query_player: Query<NameOrEntity, With<Player>>,
-    query_target: Query<NameOrEntity, With<Focus>>,
+    player: Single<NameOrEntity, With<Player>>,
+    target: Single<NameOrEntity, With<Focus>>,
     mut input_received_event_reader: EventReader<InputRead>,
     mut action_used_event_writer: EventWriter<ActionUsed>,
 ) {
@@ -80,99 +80,90 @@ pub(crate) fn handle_input_received(
         let InputRead(input) = input_received;
 
         let action = Action::from(input);
-        let actor = query_player.single().map(|t| t.entity).ok();
-        let target = query_target.single().map(|t| t.entity).ok();
+        let actor = Some(player.entity);
+        let target = Some(target.entity);
 
         action_used_event_writer.write(ActionUsed { action, actor, target });
     })
 }
 
 pub(crate) fn handle_action_taken(
+    query: Query<(NameOrEntity, &Strength)>,
     mut action_used_event_reader: EventReader<ActionUsed>,
     mut app_exit_event_writer: EventWriter<AppExit>,
     mut damage_received_event_writer: EventWriter<TargetDamaged>,
-    query_names_or_entities: Query<NameOrEntity>,
-    query_strength: Query<&Strength>,
 ) {
     action_used_event_reader.read().for_each(|action_used| match action_used {
         ActionUsed { action: Action::Attack, actor: Some(actor), target: Some(target) } => {
-            let actor_name = query_names_or_entities.get(*actor).unwrap();
-            let target_name = query_names_or_entities.get(*target).unwrap();
-            let strength = query_strength.get_inner(actor_name.entity).ok();
+            if let (Ok((actor_name, actor_strength)), Ok((target_name, _))) =
+                (query.get(*actor), query.get(*target))
+            {
+                println!("{actor_name} used Attack on {target_name}!");
 
-            println!("{actor_name} uses Attack on {target_name}!");
-
-            damage_received_event_writer
-                .write(TargetDamaged { amount: strength.unwrap().0, target: target_name.entity });
+                damage_received_event_writer
+                    .write(TargetDamaged { target: target_name.entity, amount: actor_strength.0 });
+            }
         }
         ActionUsed { action: Action::Defend, actor: Some(actor), .. } => {
-            let actor = query_names_or_entities.get(*actor).unwrap();
-            println!("{actor} uses Defend!")
+            if let Ok((actor_name, actor_strength)) = query.get(*actor) {
+                println!("{actor} used Defend!");
+            }
         }
         ActionUsed { action: Action::Quit, .. } => {
             app_exit_event_writer.write_default();
             println!("Quitting!");
         }
         ActionUsed { action: Action::Help, .. } => {
-            println!("Help!")
+            println!("Help!");
         }
         ActionUsed { action: Action::Unknown(input), .. } => {
-            warn!(r#"Ignoring unrecognized input! ("{}")"#, input)
+            warn!(r#"Ignoring unrecognized input! ("{}")"#, input);
         }
         _ => {}
     });
 }
 
 pub(crate) fn handle_target_damaged(
+    mut query: Query<(NameOrEntity, &mut Health)>,
     mut target_damaged_event_reader: EventReader<TargetDamaged>,
     mut target_defeated_event_writer: EventWriter<TargetDefeated>,
-    query_names_or_entities: Query<NameOrEntity>,
-    mut query_health: Query<&mut Health>,
 ) {
     target_damaged_event_reader.read().for_each(|target_damaged| {
-        let target = target_damaged.target;
-        let amount = target_damaged.amount;
-        let target_name = query_names_or_entities.get(target).unwrap();
+        if let Ok((target, mut health)) = query.get_mut(target_damaged.target) {
+            health.take_damage(target_damaged.amount);
 
-        println!("{target_name} damaged for {amount} HP!");
+            println!("{target} has {} HP remaining!", health.0);
 
-        if let Ok(mut health) = query_health.get_mut(target_damaged.target) {
-            health.0 -= target_damaged.amount;
-            let remaining = health.0;
-
-            println!("{target_name} has {remaining} HP remaining!");
-
-            if health.0 == 0 {
-                target_defeated_event_writer.write(TargetDefeated { target });
+            if health.is_zero() {
+                target_defeated_event_writer
+                    .write(TargetDefeated { target: target_damaged.target });
             }
         }
     });
 }
 
 pub(crate) fn handle_target_defeated(
-    mut target_defeated_event_reader: EventReader<TargetDefeated>,
-    query_names_or_entities: Query<NameOrEntity>,
+    query: Query<NameOrEntity>,
     mut commands: Commands,
+    mut target_defeated_event_reader: EventReader<TargetDefeated>,
 ) {
     target_defeated_event_reader.read().for_each(|target_defeated| {
-        let target = target_defeated.target;
-        let target_name = query_names_or_entities.get(target).unwrap();
-
-        println!("{target_name} has been defeated!");
-
-        commands.entity(target).despawn()
+        if let Ok(target) = query.get(target_defeated.target) {
+            println!("{target} has been defeated!");
+            commands.entity(target.entity).despawn();
+        }
     });
 }
 
 pub(crate) fn trigger_enemy_actions(
-    query_player: Query<NameOrEntity, With<Player>>,
-    query_enemy: Query<NameOrEntity, With<Enemy>>,
+    query: Query<NameOrEntity, With<Enemy>>,
+    player: Single<NameOrEntity, With<Player>>,
     mut action_used_event_writer: EventWriter<ActionUsed>,
 ) {
-    query_enemy.iter().for_each(|name_or_entity| {
+    query.iter().for_each(|enemy| {
         let action = Action::Attack;
-        let actor = Some(name_or_entity.entity);
-        let target = query_player.single().map(|t| t.entity).ok();
+        let actor = Some(enemy.entity);
+        let target = Some(player.entity);
 
         action_used_event_writer.write(ActionUsed { action, actor, target });
     })
