@@ -1,45 +1,57 @@
 pub(crate) mod prelude {
     pub(crate) use super::{
-        Action, Defense, Enemy, Experience, Focus, Health, Player, Slime, Strength,
+        Action, Character, Defense, Enemy, Experience, Focus, Health, Player, Slime, Strength,
     };
 }
 
 use crate::prelude::*;
 
 #[derive(Component, Debug)]
-pub(crate) struct Health(pub(crate) usize);
+pub(crate) struct Health {
+    pub(crate) amount: usize,
+}
 
 impl Health {
     pub(crate) fn take_damage(&mut self, amount: usize) {
-        self.0 -= amount;
+        self.amount -= amount;
     }
 
     pub(crate) fn is_zero(&self) -> bool {
-        self.0 == 0
+        self.amount == 0
     }
 }
 
 impl Default for Health {
     fn default() -> Self {
-        Health(100)
+        Health { amount: 100 }
     }
 }
 
 #[derive(Component, Debug)]
-pub(crate) struct Experience(pub(crate) usize);
+pub(crate) struct Experience {
+    pub(crate) amount: usize,
+}
 
 impl Default for Experience {
     fn default() -> Self {
-        Experience(1)
+        Experience { amount: 1 }
     }
 }
 
 #[derive(Component, Debug)]
-pub(crate) struct Strength(pub(crate) usize);
+pub(crate) struct Strength {
+    pub(crate) amount: usize,
+}
 
 impl Default for Strength {
     fn default() -> Self {
-        Strength(1)
+        Strength { amount: 1 }
+    }
+}
+
+impl From<usize> for Strength {
+    fn from(amount: usize) -> Self {
+        Strength { amount }
     }
 }
 
@@ -53,11 +65,15 @@ impl Default for Defense {
 }
 
 #[derive(Component, Debug, Default)]
-#[require(Name, Health, Experience, Strength, Defense)]
+#[require(Health, Experience, Strength, Defense)]
+pub(crate) struct Character;
+
+#[derive(Component, Debug, Default)]
+#[require(Name, Character)]
 pub(crate) struct Player;
 
 #[derive(Component, Debug, Default)]
-#[require(Name, Health, Experience, Strength, Defense)]
+#[require(Name, Character)]
 pub(crate) struct Enemy;
 
 #[derive(Component, Debug, Default)]

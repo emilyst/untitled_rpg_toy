@@ -82,7 +82,6 @@ fn initialize_update_systems(app: &mut App) {
             handle_target_defeated
                 .run_if(on_event::<TargetDefeated>)
                 .run_if(in_state(GameState::Running)),
-            trigger_enemy_actions.run_if(in_state(GameState::Running)),
         )
             .chain(),
     );

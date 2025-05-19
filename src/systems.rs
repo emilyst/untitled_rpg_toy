@@ -23,16 +23,16 @@ pub(crate) fn spawn_input_loop_thread(mut commands: Commands) {
 }
 
 pub(crate) fn spawn_player(mut commands: Commands) {
-    commands.spawn((Player, Name::from("Heroine"), Strength(10)));
+    commands.spawn((Player, Name::from("Heroine"), Strength { amount: 10 }));
 }
 
 pub(crate) fn spawn_enemies(mut commands: Commands) {
     commands.spawn_batch([
-        (Slime, Name::from("Slime 1"), Strength(1)),
-        (Slime, Name::from("Slime 2"), Strength(1)),
-        (Slime, Name::from("Slime 3"), Strength(1)),
-        (Slime, Name::from("Slime 4"), Strength(1)),
-        (Slime, Name::from("Slime 5"), Strength(1)),
+        (Slime, Name::from("Slime 1"), Strength { amount: 1 }),
+        (Slime, Name::from("Slime 2"), Strength { amount: 1 }),
+        (Slime, Name::from("Slime 3"), Strength { amount: 1 }),
+        (Slime, Name::from("Slime 4"), Strength { amount: 1 }),
+        (Slime, Name::from("Slime 5"), Strength { amount: 1 }),
     ]);
 }
 
@@ -67,7 +67,9 @@ pub(crate) fn receive_input(
     input_receiver: Res<InputReceiver>,
     mut input_received_event_writer: EventWriter<InputRead>,
 ) {
-    input_received_event_writer.write(InputRead(input_receiver.0.recv().unwrap()));
+    if let Ok(input) = input_receiver.0.recv() {
+        input_received_event_writer.write(InputRead(input));
+    }
 }
 
 pub(crate) fn handle_input_received(
@@ -79,11 +81,11 @@ pub(crate) fn handle_input_received(
     input_received_event_reader.read().for_each(|input_received| {
         let InputRead(input) = input_received;
 
-        let action = Action::from(input);
         let actor = Some(player.entity);
         let target = Some(target.entity);
+        let action = Action::from(input);
 
-        action_used_event_writer.write(ActionUsed { action, actor, target });
+        action_used_event_writer.write(ActionUsed { actor, target, action });
     })
 }
 
@@ -94,19 +96,19 @@ pub(crate) fn handle_action_taken(
     mut damage_received_event_writer: EventWriter<TargetDamaged>,
 ) {
     action_used_event_reader.read().for_each(|action_used| match action_used {
-        ActionUsed { action: Action::Attack, actor: Some(actor), target: Some(target) } => {
-            if let (Ok((actor_name, actor_strength)), Ok((target_name, _))) =
+        ActionUsed { actor: Some(actor), target: Some(target), action: Action::Attack } => {
+            if let (Ok((actor_name, strength)), Ok((target_name, _))) =
                 (query.get(*actor), query.get(*target))
             {
                 println!("{actor_name} used Attack on {target_name}!");
 
                 damage_received_event_writer
-                    .write(TargetDamaged { target: target_name.entity, amount: actor_strength.0 });
+                    .write(TargetDamaged { target: target_name.entity, amount: strength.amount });
             }
         }
-        ActionUsed { action: Action::Defend, actor: Some(actor), .. } => {
+        ActionUsed { actor: Some(actor), action: Action::Defend, .. } => {
             if let Ok((actor_name, actor_strength)) = query.get(*actor) {
-                println!("{actor} used Defend!");
+                println!("{actor_name} used Defend!");
             }
         }
         ActionUsed { action: Action::Quit, .. } => {
@@ -132,7 +134,7 @@ pub(crate) fn handle_target_damaged(
         if let Ok((target, mut health)) = query.get_mut(target_damaged.target) {
             health.take_damage(target_damaged.amount);
 
-            println!("{target} has {} HP remaining!", health.0);
+            println!("{target} has {} HP remaining!", health.amount);
 
             if health.is_zero() {
                 target_defeated_event_writer
