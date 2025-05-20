@@ -18,20 +18,20 @@ use std::time;
 fn main() {
     let mut app = App::new();
 
-    initialize_plugins(&mut app);
-    initialize_resources(&mut app);
-    initialize_startup_systems(&mut app);
-    initialize_post_startup_systems(&mut app);
-    initialize_update_systems(&mut app);
-    initialize_events(&mut app);
+    add_plugins(&mut app);
+    add_resources(&mut app);
+    add_startup_systems(&mut app);
+    add_post_startup_systems(&mut app);
+    add_update_systems(&mut app);
+    add_events(&mut app);
 
     app.init_state::<GameState>();
     app.run();
 }
 
-fn initialize_resources(app: &mut App) {}
+fn add_resources(app: &mut App) {}
 
-fn initialize_plugins(app: &mut App) {
+fn add_plugins(app: &mut App) {
     app.add_plugins(
         MinimalPlugins
             .set(ScheduleRunnerPlugin::run_loop(time::Duration::from_secs_f64(1.0 / 60.))),
@@ -40,7 +40,7 @@ fn initialize_plugins(app: &mut App) {
     app.add_plugins(LogPlugin { ..default() });
 }
 
-fn initialize_events(app: &mut App) {
+fn add_events(app: &mut App) {
     app.add_event::<ActionUsed>();
     app.add_event::<FocusNeeded>();
     app.add_event::<InputNeeded>();
@@ -49,19 +49,19 @@ fn initialize_events(app: &mut App) {
     app.add_event::<TargetDefeated>();
 }
 
-fn initialize_startup_systems(app: &mut App) {
+fn add_startup_systems(app: &mut App) {
     app.add_systems(Startup, spawn_input_loop_thread);
     app.add_systems(Startup, spawn_player);
     app.add_systems(Startup, spawn_enemies);
 }
 
-fn initialize_post_startup_systems(app: &mut App) {
+fn add_post_startup_systems(app: &mut App) {
     app.add_systems(PostStartup, |mut commands: Commands| {
         commands.set_state(GameState::Running);
     });
 }
 
-fn initialize_update_systems(app: &mut App) {
+fn add_update_systems(app: &mut App) {
     app.add_systems(Update, receive_input.run_if(in_state(GameState::Running)));
 
     app.add_systems(
