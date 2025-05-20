@@ -10,9 +10,10 @@ mod states;
 mod systems;
 
 use crate::prelude::*;
-
+use bevy::app::ScheduleRunnerPlugin;
 use bevy::log::LogPlugin;
 use bevy::state::app::StatesPlugin;
+use std::time;
 
 fn main() {
     let mut app = App::new();
@@ -21,7 +22,6 @@ fn main() {
     initialize_resources(&mut app);
     initialize_startup_systems(&mut app);
     initialize_post_startup_systems(&mut app);
-    initialize_pre_update_systems(&mut app);
     initialize_update_systems(&mut app);
     initialize_events(&mut app);
 
@@ -32,14 +32,19 @@ fn main() {
 fn initialize_resources(app: &mut App) {}
 
 fn initialize_plugins(app: &mut App) {
-    app.add_plugins(MinimalPlugins);
+    app.add_plugins(
+        MinimalPlugins
+            .set(ScheduleRunnerPlugin::run_loop(time::Duration::from_secs_f64(1.0 / 60.))),
+    );
     app.add_plugins(StatesPlugin);
     app.add_plugins(LogPlugin { ..default() });
 }
 
 fn initialize_events(app: &mut App) {
-    app.add_event::<InputRead>();
     app.add_event::<ActionUsed>();
+    app.add_event::<FocusNeeded>();
+    app.add_event::<InputNeeded>();
+    app.add_event::<InputRead>();
     app.add_event::<TargetDamaged>();
     app.add_event::<TargetDefeated>();
 }
@@ -56,33 +61,20 @@ fn initialize_post_startup_systems(app: &mut App) {
     });
 }
 
-fn initialize_pre_update_systems(app: &mut App) {
-    app.add_systems(
-        PreUpdate,
-        (
-            focus_next_enemy.run_if(in_state(GameState::Running)),
-            prompt_for_input.run_if(in_state(GameState::Running)).after(focus_next_enemy),
-            receive_input.run_if(in_state(GameState::Running)).after(prompt_for_input),
-        )
-            .chain(),
-    );
-}
-
 fn initialize_update_systems(app: &mut App) {
+    app.add_systems(Update, receive_input.run_if(in_state(GameState::Running)));
+
     app.add_systems(
         Update,
         (
-            handle_input_received
-                .run_if(on_event::<InputRead>)
-                .run_if(in_state(GameState::Running)),
-            handle_action_taken.run_if(on_event::<ActionUsed>).run_if(in_state(GameState::Running)),
-            handle_target_damaged
-                .run_if(on_event::<TargetDamaged>)
-                .run_if(in_state(GameState::Running)),
-            handle_target_defeated
-                .run_if(on_event::<TargetDefeated>)
-                .run_if(in_state(GameState::Running)),
+            handle_focus_needed.run_if(on_event::<FocusNeeded>),
+            handle_action_taken.run_if(on_event::<ActionUsed>),
+            handle_input_received.run_if(on_event::<InputRead>),
+            handle_target_damaged.run_if(on_event::<TargetDamaged>),
+            handle_target_defeated.run_if(on_event::<TargetDefeated>),
+            handle_input_needed.run_if(on_event::<InputNeeded>),
         )
-            .chain(),
+            .chain()
+            .run_if(in_state(GameState::Running)),
     );
 }

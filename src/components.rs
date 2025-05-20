@@ -6,7 +6,7 @@ pub(crate) mod prelude {
 
 use crate::prelude::*;
 
-#[derive(Component, Debug)]
+#[derive(Component, Copy, Clone, Debug)]
 pub(crate) struct Health {
     pub(crate) amount: usize,
 }
@@ -27,7 +27,7 @@ impl Default for Health {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Copy, Clone, Debug)]
 pub(crate) struct Experience {
     pub(crate) amount: usize,
 }
@@ -38,7 +38,7 @@ impl Default for Experience {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Copy, Clone, Debug)]
 pub(crate) struct Strength {
     pub(crate) amount: usize,
 }
@@ -55,7 +55,7 @@ impl From<usize> for Strength {
     }
 }
 
-#[derive(Component, Debug)]
+#[derive(Component, Copy, Clone, Debug)]
 pub(crate) struct Defense(pub(crate) usize);
 
 impl Default for Defense {
@@ -64,26 +64,26 @@ impl Default for Defense {
     }
 }
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Copy, Clone, Debug, Default)]
 #[require(Health, Experience, Strength, Defense)]
 pub(crate) struct Character;
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Copy, Clone, Debug, Default)]
 #[require(Name, Character)]
 pub(crate) struct Player;
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Copy, Clone, Debug, Default)]
 #[require(Name, Character)]
 pub(crate) struct Enemy;
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Copy, Clone, Debug, Default)]
 #[require(Enemy)]
 pub(crate) struct Slime;
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Copy, Clone, Debug, Default)]
 pub(crate) struct Focus;
 
-#[derive(Component, Debug, Default)]
+#[derive(Component, Clone, Debug, Default)]
 pub(crate) enum Action {
     Attack,
     Defend,

@@ -6,20 +6,30 @@ use crate::prelude::*;
 
 use std::io;
 use std::io::Write;
-use std::sync::mpsc::sync_channel;
+use std::sync::mpsc::channel;
+use std::thread;
+use std::thread::sleep;
+use std::time::Duration;
 
-pub(crate) fn spawn_input_loop_thread(mut commands: Commands) {
-    let (sender, receiver) = sync_channel::<String>(1);
+pub(crate) fn spawn_input_loop_thread(
+    mut commands: Commands,
+    mut focus_needed_event_writer: EventWriter<FocusNeeded>,
+    mut input_needed_event_writer: EventWriter<InputNeeded>,
+) {
+    let (sender, receiver) = channel::<String>();
 
-    std::thread::spawn(move || {
+    thread::spawn(move || {
         loop {
             let mut string = String::new();
-            io::stdin().read_line(&mut string).unwrap();
-            sender.send(string).unwrap();
+            let _ = io::stdin().read_line(&mut string);
+            let _ = sender.send(string);
         }
     });
 
     commands.insert_resource(InputReceiver(receiver));
+
+    focus_needed_event_writer.write_default();
+    input_needed_event_writer.write_default();
 }
 
 pub(crate) fn spawn_player(mut commands: Commands) {
@@ -28,46 +38,51 @@ pub(crate) fn spawn_player(mut commands: Commands) {
 
 pub(crate) fn spawn_enemies(mut commands: Commands) {
     commands.spawn_batch([
-        (Slime, Name::from("Slime 1"), Strength { amount: 1 }),
-        (Slime, Name::from("Slime 2"), Strength { amount: 1 }),
-        (Slime, Name::from("Slime 3"), Strength { amount: 1 }),
-        (Slime, Name::from("Slime 4"), Strength { amount: 1 }),
-        (Slime, Name::from("Slime 5"), Strength { amount: 1 }),
+        (Slime, Name::from("Slime"), Strength { amount: 1 }),
+        (Slime, Name::from("Slime"), Strength { amount: 1 }),
+        (Slime, Name::from("Slime"), Strength { amount: 1 }),
+        (Slime, Name::from("Slime"), Strength { amount: 1 }),
+        (Slime, Name::from("Slime"), Strength { amount: 1 }),
     ]);
 }
 
-pub(crate) fn focus_next_enemy(
+pub(crate) fn handle_focus_needed(
     query: Query<NameOrEntity, With<Enemy>>,
     focus: Option<Single<NameOrEntity, With<Focus>>>,
+    focus_needed_event_reader: EventReader<FocusNeeded>,
     mut commands: Commands,
 ) {
-    // just focus first enemy for now
-    let enemy = query.iter().min_by_key(|enemy| enemy.entity.index());
+    if !focus_needed_event_reader.is_empty() {
+        // just focus first enemy for now
+        let enemy = query.iter().min_by_key(|enemy| enemy.entity.index());
 
-    match (enemy, focus) {
-        (Some(enemy), Some(focus)) => {
-            if enemy.entity != focus.entity {
-                commands.entity(focus.entity).remove::<Focus>();
+        match (enemy, focus) {
+            (Some(enemy), Some(focus)) => {
+                if enemy.entity != focus.entity {
+                    commands.entity(focus.entity).remove::<Focus>();
+                    commands.entity(enemy.entity).insert(Focus);
+                }
+            }
+            (Some(enemy), None) => {
                 commands.entity(enemy.entity).insert(Focus);
             }
+            _ => {}
         }
-        (Some(enemy), None) => {
-            commands.entity(enemy.entity).insert(Focus);
-        }
-        _ => {}
     }
 }
 
-pub(crate) fn prompt_for_input() {
-    print!(">> ");
-    let _ = io::stdout().flush();
+pub(crate) fn handle_input_needed(input_needed_event_reader: EventReader<InputNeeded>) {
+    if !input_needed_event_reader.is_empty() {
+        print!(">> ");
+        let _ = io::stdout().flush();
+    }
 }
 
 pub(crate) fn receive_input(
     input_receiver: Res<InputReceiver>,
     mut input_received_event_writer: EventWriter<InputRead>,
 ) {
-    if let Ok(input) = input_receiver.0.recv() {
+    if let Ok(input) = input_receiver.0.try_recv() {
         input_received_event_writer.write(InputRead(input));
     }
 }
@@ -147,12 +162,15 @@ pub(crate) fn handle_target_damaged(
 pub(crate) fn handle_target_defeated(
     query: Query<NameOrEntity>,
     mut commands: Commands,
+    mut focus_needed_event_writer: EventWriter<FocusNeeded>,
     mut target_defeated_event_reader: EventReader<TargetDefeated>,
 ) {
     target_defeated_event_reader.read().for_each(|target_defeated| {
         if let Ok(target) = query.get(target_defeated.target) {
             println!("{target} has been defeated!");
+
             commands.entity(target.entity).despawn();
+            focus_needed_event_writer.write_default();
         }
     });
 }
