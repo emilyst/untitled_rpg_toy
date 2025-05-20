@@ -1,5 +1,0 @@
-[build]
-jobs = 2
-
-[target.aarch64-apple-darwin]
-linker = "ld"
