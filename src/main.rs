@@ -4,6 +4,7 @@
 
 mod components;
 mod events;
+mod macros;
 mod prelude;
 mod resources;
 mod states;
@@ -13,6 +14,8 @@ use crate::prelude::*;
 use bevy::app::ScheduleRunnerPlugin;
 use bevy::log::LogPlugin;
 use bevy::state::app::StatesPlugin;
+use std::io;
+use std::io::Write;
 use std::time;
 
 fn main() {
@@ -43,7 +46,6 @@ fn add_plugins(app: &mut App) {
 fn add_events(app: &mut App) {
     app.add_event::<ActionUsed>();
     app.add_event::<FocusNeeded>();
-    app.add_event::<InputNeeded>();
     app.add_event::<InputRead>();
     app.add_event::<TargetDamaged>();
     app.add_event::<TargetDefeated>();
@@ -59,6 +61,12 @@ fn add_post_startup_systems(app: &mut App) {
     app.add_systems(PostStartup, |mut commands: Commands| {
         commands.set_state(GameState::Running);
     });
+
+    app.add_systems(PostStartup, |mut focus_needed_event_writer: EventWriter<FocusNeeded>| {
+        focus_needed_event_writer.write_default();
+    });
+
+    print_with_prompt!("");
 }
 
 fn add_update_systems(app: &mut App) {
@@ -72,7 +80,6 @@ fn add_update_systems(app: &mut App) {
             handle_input_received.run_if(on_event::<InputRead>),
             handle_target_damaged.run_if(on_event::<TargetDamaged>),
             handle_target_defeated.run_if(on_event::<TargetDefeated>),
-            handle_input_needed.run_if(on_event::<InputNeeded>),
         )
             .chain()
             .run_if(in_state(GameState::Running)),

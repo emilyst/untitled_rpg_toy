@@ -7,9 +7,6 @@ use crate::prelude::*;
 #[derive(Event, Copy, Clone, Debug, Default)]
 pub(crate) struct FocusNeeded;
 
-#[derive(Event, Copy, Clone, Debug, Default)]
-pub(crate) struct InputNeeded;
-
 #[derive(Event, Clone, Debug)]
 pub(crate) struct InputRead(pub(crate) String);
 
