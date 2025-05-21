@@ -41,9 +41,9 @@ pub(crate) fn spawn_enemies(mut commands: Commands) {
 }
 
 pub(crate) fn handle_focus_needed(
+    mut focus_needed_event_reader: EventReader<FocusNeeded>,
     enemies_query: Query<NameOrEntity, With<Enemy>>,
     focus_query: Query<NameOrEntity, With<Focus>>,
-    mut focus_needed_event_reader: EventReader<FocusNeeded>,
     mut commands: Commands,
 ) {
     focus_needed_event_reader.read().for_each(|_| {
@@ -76,9 +76,9 @@ pub(crate) fn receive_input(
 }
 
 pub(crate) fn handle_input_received(
+    mut input_received_event_reader: EventReader<InputRead>,
     player: Single<NameOrEntity, With<Player>>,
     target: Single<NameOrEntity, With<Focus>>,
-    mut input_received_event_reader: EventReader<InputRead>,
     mut action_used_event_writer: EventWriter<ActionUsed>,
 ) {
     input_received_event_reader.read().for_each(|input_received| {
@@ -93,10 +93,10 @@ pub(crate) fn handle_input_received(
 }
 
 pub(crate) fn handle_action_taken(
-    query: Query<(NameOrEntity, &Strength)>,
     mut action_used_event_reader: EventReader<ActionUsed>,
-    mut app_exit_event_writer: EventWriter<AppExit>,
+    query: Query<(NameOrEntity, &Strength)>,
     mut damage_received_event_writer: EventWriter<TargetDamaged>,
+    mut app_exit_event_writer: EventWriter<AppExit>,
 ) {
     action_used_event_reader.read().for_each(|action_used| match action_used {
         ActionUsed { actor: Some(actor), target: Some(target), action: Action::Attack } => {
@@ -129,8 +129,8 @@ pub(crate) fn handle_action_taken(
 }
 
 pub(crate) fn handle_target_damaged(
-    mut query: Query<(NameOrEntity, &mut Health)>,
     mut target_damaged_event_reader: EventReader<TargetDamaged>,
+    mut query: Query<(NameOrEntity, &mut Health)>,
     mut target_defeated_event_writer: EventWriter<TargetDefeated>,
 ) {
     target_damaged_event_reader.read().for_each(|target_damaged| {
@@ -148,10 +148,10 @@ pub(crate) fn handle_target_damaged(
 }
 
 pub(crate) fn handle_target_defeated(
+    mut target_defeated_event_reader: EventReader<TargetDefeated>,
     query: Query<NameOrEntity>,
     mut commands: Commands,
     mut focus_needed_event_writer: EventWriter<FocusNeeded>,
-    mut target_defeated_event_reader: EventReader<TargetDefeated>,
 ) {
     target_defeated_event_reader.read().for_each(|target_defeated| {
         if let Ok(target) = query.get(target_defeated.target) {
