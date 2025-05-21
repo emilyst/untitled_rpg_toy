@@ -1,7 +1,5 @@
 pub(crate) mod prelude {
-    pub(crate) use super::{
-        Action, Character, Defense, Enemy, Experience, Focus, Health, Player, Slime, Strength,
-    };
+    pub(crate) use super::*;
 }
 
 use crate::prelude::*;
@@ -23,7 +21,7 @@ impl Health {
 
 impl Default for Health {
     fn default() -> Self {
-        Health { amount: 100 }
+        Self { amount: 100 }
     }
 }
 
@@ -34,7 +32,7 @@ pub(crate) struct Experience {
 
 impl Default for Experience {
     fn default() -> Self {
-        Experience { amount: 1 }
+        Self { amount: 1 }
     }
 }
 
@@ -45,13 +43,13 @@ pub(crate) struct Strength {
 
 impl Default for Strength {
     fn default() -> Self {
-        Strength { amount: 1 }
+        Self { amount: 1 }
     }
 }
 
 impl From<usize> for Strength {
     fn from(amount: usize) -> Self {
-        Strength { amount }
+        Self { amount }
     }
 }
 
@@ -60,12 +58,17 @@ pub(crate) struct Defense(pub(crate) usize);
 
 impl Default for Defense {
     fn default() -> Self {
-        Defense(1)
+        Self(1)
     }
 }
 
+#[derive(Component, Clone, Debug, Default)]
+pub(crate) struct Cooldown {
+    pub(crate) timer: Timer,
+}
+
 #[derive(Component, Copy, Clone, Debug, Default)]
-#[require(Health, Experience, Strength, Defense)]
+#[require(Health, Experience, Strength, Defense, Cooldown)]
 pub(crate) struct Character;
 
 #[derive(Component, Copy, Clone, Debug, Default)]

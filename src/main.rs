@@ -11,6 +11,7 @@ mod states;
 mod systems;
 
 use crate::prelude::*;
+
 use bevy::app::ScheduleRunnerPlugin;
 use bevy::log::LogPlugin;
 use bevy::state::app::StatesPlugin;
@@ -32,15 +33,16 @@ fn main() {
     app.run();
 }
 
-fn add_resources(app: &mut App) {}
+fn add_resources(app: &mut App) {
+    app.insert_resource(SharedRng::default());
+}
 
 fn add_plugins(app: &mut App) {
     app.add_plugins(
-        MinimalPlugins
-            .set(ScheduleRunnerPlugin::run_loop(time::Duration::from_secs_f64(1.0 / 60.))),
+        MinimalPlugins.set(ScheduleRunnerPlugin::run_loop(time::Duration::from_secs_f64(1. / 60.))),
     );
     app.add_plugins(StatesPlugin);
-    app.add_plugins(LogPlugin { ..default() });
+    app.add_plugins(LogPlugin::default());
 }
 
 fn add_events(app: &mut App) {
@@ -66,22 +68,21 @@ fn add_post_startup_systems(app: &mut App) {
         focus_needed_event_writer.write_default();
     });
 
-    print_with_prompt!("");
+    println!(">> ")
 }
 
 fn add_update_systems(app: &mut App) {
-    app.add_systems(Update, receive_input.run_if(in_state(GameState::Running)));
-
     app.add_systems(
         Update,
         (
+            receive_input,
+            trigger_enemy_turns,
             handle_focus_needed.run_if(on_event::<FocusNeeded>),
             handle_action_taken.run_if(on_event::<ActionUsed>),
             handle_input_received.run_if(on_event::<InputRead>),
             handle_target_damaged.run_if(on_event::<TargetDamaged>),
             handle_target_defeated.run_if(on_event::<TargetDefeated>),
         )
-            .chain()
             .run_if(in_state(GameState::Running)),
     );
 }

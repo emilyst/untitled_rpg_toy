@@ -3,14 +3,13 @@ pub(crate) mod prelude {
 }
 
 use crate::prelude::*;
-
 use crate::print_with_prompt;
+
 use std::io;
 use std::io::Write;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::thread::sleep;
-use std::time::Duration;
 
 pub(crate) fn spawn_input_loop_thread(mut commands: Commands) {
     let (sender, receiver) = channel::<String>();
@@ -30,13 +29,50 @@ pub(crate) fn spawn_player(mut commands: Commands) {
     commands.spawn((Player, Name::from("Heroine"), Strength { amount: 10 }));
 }
 
-pub(crate) fn spawn_enemies(mut commands: Commands) {
+pub(crate) fn spawn_enemies(mut commands: Commands, shared_rng: ResMut<SharedRng>) {
+    let shared_rng = shared_rng.into_inner();
+
     commands.spawn_batch([
-        (Slime, Name::from("Slime"), Strength { amount: 1 }),
-        (Slime, Name::from("Slime"), Strength { amount: 1 }),
-        (Slime, Name::from("Slime"), Strength { amount: 1 }),
-        (Slime, Name::from("Slime"), Strength { amount: 1 }),
-        (Slime, Name::from("Slime"), Strength { amount: 1 }),
+        (
+            Slime,
+            Name::from("Slime"),
+            Strength { amount: 1 },
+            Cooldown {
+                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
+            },
+        ),
+        (
+            Slime,
+            Name::from("Slime"),
+            Strength { amount: 1 },
+            Cooldown {
+                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
+            },
+        ),
+        (
+            Slime,
+            Name::from("Slime"),
+            Strength { amount: 1 },
+            Cooldown {
+                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
+            },
+        ),
+        (
+            Slime,
+            Name::from("Slime"),
+            Strength { amount: 1 },
+            Cooldown {
+                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
+            },
+        ),
+        (
+            Slime,
+            Name::from("Slime"),
+            Strength { amount: 1 },
+            Cooldown {
+                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
+            },
+        ),
     ]);
 }
 
@@ -163,16 +199,19 @@ pub(crate) fn handle_target_defeated(
     });
 }
 
-pub(crate) fn trigger_enemy_actions(
-    query: Query<NameOrEntity, With<Enemy>>,
+pub(crate) fn trigger_enemy_turns(
+    time: Res<Time>,
+    mut query: Query<(NameOrEntity, &mut Cooldown), With<Enemy>>,
     player: Single<NameOrEntity, With<Player>>,
     mut action_used_event_writer: EventWriter<ActionUsed>,
 ) {
-    query.iter().for_each(|enemy| {
-        let action = Action::Attack;
-        let actor = Some(enemy.entity);
-        let target = Some(player.entity);
+    query.iter_mut().for_each(|(enemy, mut cooldown)| {
+        if cooldown.timer.tick(time.delta()).just_finished() {
+            let action = Action::Attack;
+            let actor = Some(enemy.entity);
+            let target = Some(player.entity);
 
-        action_used_event_writer.write(ActionUsed { action, actor, target });
+            action_used_event_writer.write(ActionUsed { action, actor, target });
+        }
     })
 }

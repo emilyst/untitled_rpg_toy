@@ -28,10 +28,10 @@ strip = "debuginfo"
 inherits = "release"
 strip = true
 lto = "thin"
-codegen-units = 2
 
-[dependencies.rand]
-version = "*"
+[dependencies]
+rand = "*"
+rand_chacha = "*"
 
 [dependencies.log]
 version = "0.4"
@@ -43,8 +43,8 @@ features = [
 
 [dependencies.bevy]
 version = "0.16.*"
-default-features = false
-features = [
-    "bevy_log",
-    "bevy_state",
-]
+#default-features = false
+#features = [
+#    "bevy_log",
+#    "bevy_state",
+#]
