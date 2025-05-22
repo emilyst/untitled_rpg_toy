@@ -5,51 +5,29 @@ pub(crate) mod prelude {
 use crate::prelude::*;
 
 #[derive(Component, Copy, Clone, Debug)]
-pub(crate) struct Health {
-    pub(crate) amount: usize,
-}
-
-impl Health {
-    pub(crate) fn take_damage(&mut self, amount: usize) {
-        self.amount -= amount;
-    }
-
-    pub(crate) fn is_zero(&self) -> bool {
-        self.amount == 0
-    }
-}
+pub(crate) struct Health(pub(crate) usize);
 
 impl Default for Health {
     fn default() -> Self {
-        Self { amount: 100 }
+        Self(100)
     }
 }
 
-#[derive(Component, Copy, Clone, Debug)]
-pub(crate) struct Experience {
-    pub(crate) amount: usize,
-}
-
-impl Default for Experience {
-    fn default() -> Self {
-        Self { amount: 1 }
-    }
-}
+#[derive(Component, Copy, Clone, Debug, Default)]
+pub(crate) struct Experience(pub(crate) usize);
 
 #[derive(Component, Copy, Clone, Debug)]
-pub(crate) struct Strength {
-    pub(crate) amount: usize,
-}
+pub(crate) struct Strength(pub(crate) usize);
 
 impl Default for Strength {
     fn default() -> Self {
-        Self { amount: 1 }
+        Self(1)
     }
 }
 
 impl From<usize> for Strength {
     fn from(amount: usize) -> Self {
-        Self { amount }
+        Self(amount)
     }
 }
 
@@ -63,9 +41,7 @@ impl Default for Defense {
 }
 
 #[derive(Component, Clone, Debug, Default)]
-pub(crate) struct Cooldown {
-    pub(crate) timer: Timer,
-}
+pub(crate) struct Cooldown(pub(crate) Timer);
 
 #[derive(Component, Copy, Clone, Debug, Default)]
 #[require(Health, Experience, Strength, Defense, Cooldown)]
@@ -97,8 +73,8 @@ pub(crate) enum Action {
     None,
 }
 
-impl From<&String> for Action {
-    fn from(s: &String) -> Self {
+impl From<String> for Action {
+    fn from(s: String) -> Self {
         if s.starts_with("a") {
             Action::Attack
         } else if s.starts_with("d") {
@@ -112,5 +88,11 @@ impl From<&String> for Action {
         } else {
             Action::Unknown(s.trim().into())
         }
+    }
+}
+
+impl From<&str> for Action {
+    fn from(s: &str) -> Self {
+        Self::from(s.to_string())
     }
 }

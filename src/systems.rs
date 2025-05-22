@@ -7,6 +7,7 @@ use crate::print_with_prompt;
 
 use std::io;
 use std::io::Write;
+use std::ops::Deref;
 use std::sync::mpsc::channel;
 use std::thread;
 use std::thread::sleep;
@@ -26,54 +27,18 @@ pub(crate) fn spawn_input_loop_thread(mut commands: Commands) {
 }
 
 pub(crate) fn spawn_player(mut commands: Commands) {
-    commands.spawn((Player, Name::from("Heroine"), Strength { amount: 10 }));
+    commands.spawn((Player, Name::from("Heroine"), Strength(10)));
 }
 
 pub(crate) fn spawn_enemies(mut commands: Commands, shared_rng: ResMut<SharedRng>) {
     let shared_rng = shared_rng.into_inner();
 
-    commands.spawn_batch([
-        (
-            Slime,
-            Name::from("Slime"),
-            Strength { amount: 1 },
-            Cooldown {
-                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
-            },
-        ),
-        (
-            Slime,
-            Name::from("Slime"),
-            Strength { amount: 1 },
-            Cooldown {
-                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
-            },
-        ),
-        (
-            Slime,
-            Name::from("Slime"),
-            Strength { amount: 1 },
-            Cooldown {
-                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
-            },
-        ),
-        (
-            Slime,
-            Name::from("Slime"),
-            Strength { amount: 1 },
-            Cooldown {
-                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
-            },
-        ),
-        (
-            Slime,
-            Name::from("Slime"),
-            Strength { amount: 1 },
-            Cooldown {
-                timer: Timer::from_seconds(shared_rng.random_range(1.0..5.0), TimerMode::Repeating),
-            },
-        ),
-    ]);
+    commands.spawn((
+        Slime,
+        Name::from("Slime"),
+        Strength(1),
+        Cooldown(Timer::from_seconds(1., TimerMode::Repeating)),
+    ));
 }
 
 pub(crate) fn handle_focus_needed(
@@ -102,11 +67,13 @@ pub(crate) fn handle_focus_needed(
     });
 }
 
-pub(crate) fn receive_input(
+pub(crate) fn try_receive_input(
     input_receiver: Res<InputReceiver>,
     mut input_received_event_writer: EventWriter<InputRead>,
 ) {
-    if let Ok(input) = input_receiver.0.try_recv() {
+    let InputReceiver(input_receiver) = input_receiver.into_inner();
+
+    if let Ok(input) = input_receiver.try_recv() {
         input_received_event_writer.write(InputRead(input));
     }
 }
@@ -122,7 +89,7 @@ pub(crate) fn handle_input_received(
 
         let actor = Some(player.entity);
         let target = Some(target.entity);
-        let action = Action::from(input);
+        let action = Action::from(input.to_owned());
 
         action_used_event_writer.write(ActionUsed { actor, target, action });
     })
@@ -141,8 +108,10 @@ pub(crate) fn handle_action_taken(
             {
                 print_with_prompt!("{actor_name} used Attack on {target_name}!");
 
+                let Strength(strength) = strength;
+
                 damage_received_event_writer
-                    .write(TargetDamaged { target: target_name.entity, amount: strength.amount });
+                    .write(TargetDamaged { target: target_name.entity, amount: *strength });
             }
         }
         ActionUsed { actor: Some(actor), action: Action::Defend, .. } => {
@@ -170,14 +139,14 @@ pub(crate) fn handle_target_damaged(
     mut target_defeated_event_writer: EventWriter<TargetDefeated>,
 ) {
     target_damaged_event_reader.read().for_each(|target_damaged| {
-        if let Ok((target, mut health)) = query.get_mut(target_damaged.target) {
-            health.take_damage(target_damaged.amount);
+        if let Ok((target, health)) = query.get_mut(target_damaged.target) {
+            let Health(health) = health.into_inner();
 
-            print_with_prompt!("{target} has {} HP remaining!", health.amount);
+            *health -= target_damaged.amount;
+            print_with_prompt!("{target} has {} HP remaining!", health);
 
-            if health.is_zero() {
-                target_defeated_event_writer
-                    .write(TargetDefeated { target: target_damaged.target });
+            if *health == 0 {
+                target_defeated_event_writer.write(TargetDefeated(target_damaged.target));
             }
         }
     });
@@ -190,7 +159,9 @@ pub(crate) fn handle_target_defeated(
     mut focus_needed_event_writer: EventWriter<FocusNeeded>,
 ) {
     target_defeated_event_reader.read().for_each(|target_defeated| {
-        if let Ok(target) = query.get(target_defeated.target) {
+        let TargetDefeated(target) = target_defeated;
+
+        if let Ok(target) = query.get(*target) {
             print_with_prompt!("{target} has been defeated!");
 
             commands.entity(target.entity).despawn();
@@ -200,13 +171,15 @@ pub(crate) fn handle_target_defeated(
 }
 
 pub(crate) fn trigger_enemy_turns(
-    time: Res<Time>,
     mut query: Query<(NameOrEntity, &mut Cooldown), With<Enemy>>,
+    time: Res<Time>,
     player: Single<NameOrEntity, With<Player>>,
     mut action_used_event_writer: EventWriter<ActionUsed>,
 ) {
-    query.iter_mut().for_each(|(enemy, mut cooldown)| {
-        if cooldown.timer.tick(time.delta()).just_finished() {
+    query.iter_mut().for_each(|(enemy, cooldown)| {
+        let Cooldown(cooldown_timer) = cooldown.into_inner();
+
+        if cooldown_timer.tick(time.delta()).finished() {
             let action = Action::Attack;
             let actor = Some(enemy.entity);
             let target = Some(player.entity);

@@ -1,10 +1,10 @@
 [package]
+edition = "2024"
 name = "untitled_rpg_toy"
 version = "0.0.1"
-edition = "2024"
 
 [profile.dev]
-debug = 0
+debug = 2
 opt-level = 0 # Switch to 1 for more runtime performance
 #overflow-checks = false # Uncomment for better math performance
 
@@ -19,27 +19,21 @@ dev = [
 opt-level = 2
 
 [profile.release]
+debug = 0
 opt-level = 3
 panic = "abort"
-debug = 0
 strip = "debuginfo"
 
 [profile.distribution]
 inherits = "release"
-strip = true
+
+codegen-units = 1
 lto = "thin"
+strip = true
 
 [dependencies]
 rand = "*"
 rand_chacha = "*"
-
-[dependencies.log]
-version = "0.4"
-#default-features = false
-features = [
-    "max_level_debug",
-    "release_max_level_warn",
-]
 
 [dependencies.bevy]
 version = "0.16.*"

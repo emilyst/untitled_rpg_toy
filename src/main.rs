@@ -38,9 +38,9 @@ fn add_resources(app: &mut App) {
 }
 
 fn add_plugins(app: &mut App) {
-    app.add_plugins(
-        MinimalPlugins.set(ScheduleRunnerPlugin::run_loop(time::Duration::from_secs_f64(1. / 60.))),
-    );
+    let runner = ScheduleRunnerPlugin::run_loop(time::Duration::from_secs_f64(1. / 60.));
+
+    app.add_plugins(MinimalPlugins.set(runner));
     app.add_plugins(StatesPlugin);
     app.add_plugins(LogPlugin::default());
 }
@@ -68,14 +68,15 @@ fn add_post_startup_systems(app: &mut App) {
         focus_needed_event_writer.write_default();
     });
 
-    println!(">> ")
+    print!(">> ");
+    io::stdout().flush().unwrap();
 }
 
 fn add_update_systems(app: &mut App) {
     app.add_systems(
         Update,
         (
-            receive_input,
+            try_receive_input,
             trigger_enemy_turns,
             handle_focus_needed.run_if(on_event::<FocusNeeded>),
             handle_action_taken.run_if(on_event::<ActionUsed>),

@@ -24,6 +24,4 @@ pub(crate) struct TargetDamaged {
 }
 
 #[derive(Event, Copy, Clone, Debug)]
-pub(crate) struct TargetDefeated {
-    pub(crate) target: Entity,
-}
+pub(crate) struct TargetDefeated(pub(crate) Entity);
