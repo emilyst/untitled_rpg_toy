@@ -104,61 +104,56 @@ pub(crate) fn handle_input_received(
 
 pub(crate) fn handle_action_taken(
     mut action_used_event_reader: EventReader<ActionUsed>,
-    query: Query<(NameOrEntity, &Strength)>,
+    actor_and_strength_query: Query<(NameOrEntity, &Strength)>,
+    target_query: Query<NameOrEntity>,
     mut damage_received_event_writer: EventWriter<TargetDamaged>,
     mut app_exit_event_writer: EventWriter<AppExit>,
 ) {
-    action_used_event_reader
-        .read()
-        .for_each(|action_used| match action_used {
-            ActionUsed {
-                actor: Some(actor),
-                target: Some(target),
-                action: Action::Attack,
-            } => {
-                if let (Ok((actor_name, strength)), Ok((target_name, _))) =
-                    (query.get(*actor), query.get(*target))
-                {
-                    print_with_prompt!("{actor_name} used Attack on {target_name}!");
+    action_used_event_reader.read().for_each(|action_used| {
+        let ActionUsed {
+            action,
+            actor,
+            target,
+        } = action_used;
 
-                    let Strength(strength) = strength;
+        match action {
+            Action::Attack => {
+                if let (Some(actor), Some(target)) = (actor, target) {
+                    if let (Ok((actor, strength)), Ok(target)) = (
+                        actor_and_strength_query.get(*actor),
+                        target_query.get(*target),
+                    ) {
+                        print_with_prompt!("{actor} used Attack on {target}!");
 
-                    damage_received_event_writer.write(TargetDamaged {
-                        target: target_name.entity,
-                        amount: *strength,
-                    });
+                        let Strength(strength) = strength;
+
+                        damage_received_event_writer.write(TargetDamaged {
+                            target: target.entity,
+                            amount: *strength,
+                        });
+                    }
                 }
             }
-            ActionUsed {
-                actor: Some(actor),
-                action: Action::Defend,
-                ..
-            } => {
-                if let Ok((actor_name, actor_strength)) = query.get(*actor) {
-                    print_with_prompt!("{actor_name} used Defend!");
+            Action::Defend => {
+                if let Some(actor) = actor {
+                    if let Ok((actor, _)) = actor_and_strength_query.get(*actor) {
+                        print_with_prompt!("{actor} used Defend!");
+                    }
                 }
             }
-            ActionUsed {
-                action: Action::Quit,
-                ..
-            } => {
+            Action::Quit => {
                 app_exit_event_writer.write_default();
                 print_with_prompt!("Quitting!");
             }
-            ActionUsed {
-                action: Action::Help,
-                ..
-            } => {
+            Action::Help => {
                 print_with_prompt!("Help!");
             }
-            ActionUsed {
-                action: Action::Unknown(input),
-                ..
-            } => {
-                print_with_prompt!("Ignoring unrecognized input! ({})", input);
+            Action::Unknown(input) => {
+                print_with_prompt!("Ignoring unrecognized input: {}", input);
             }
             _ => {}
-        });
+        }
+    });
 }
 
 pub(crate) fn handle_target_damaged(
