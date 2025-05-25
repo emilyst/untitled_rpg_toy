@@ -26,7 +26,6 @@ strip = "debuginfo"
 
 [profile.distribution]
 inherits = "release"
-
 codegen-units = 1
 lto = "thin"
 strip = true
